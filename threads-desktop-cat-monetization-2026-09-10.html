@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>커스텀 데스크톱 고양이 수익화 분석</title>
+  <style>
+    :root { --bg:#f6f7f9; --paper:#fff; --ink:#17202a; --muted:#617083; --line:#d8e0e8; --accent:#1f7a8c; --dark:#12202a; --soft:#e8f2f4; --warm:#fff4df; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--ink); background:var(--bg); line-height:1.68; }
+    header { padding:48px 20px 34px; color:#f7fbff; background:var(--dark); border-bottom:6px solid var(--accent); }
+    .wrap { width:min(1040px,calc(100% - 36px)); margin:0 auto; }
+    .nav { margin:0 0 20px; font-size:14px; }.nav a { color:#9ed8e1; font-weight:750; text-decoration:none; }
+    .eyebrow { margin:0 0 12px; color:#9ed8e1; font-size:13px; font-weight:750; text-transform:uppercase; }
+    h1 { max-width:900px; margin:0; font-size:clamp(31px,5vw,52px); line-height:1.1; }.lead { max-width:820px; margin:18px 0 0; color:#c8d7e3; font-size:18px; }
+    main { padding:30px 0 58px; } section { padding:28px 0; border-bottom:1px solid var(--line); } h2 { margin:0 0 14px; font-size:25px; line-height:1.25; } h3 { margin:0 0 8px; font-size:19px; } p { margin:10px 0; } a { color:var(--accent); font-weight:700; }
+    .stats,.grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-top:16px; }.grid.two { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .stat,.card,.note { padding:17px; background:var(--paper); border:1px solid var(--line); border-radius:8px; }.stat strong { display:block; font-size:23px; line-height:1.15; }.stat span,.muted { color:var(--muted); font-size:14px; }
+    .callout { margin-top:16px; padding:18px 20px; border:1px solid #d6c287; border-radius:8px; background:var(--warm); }.card h3 { color:var(--accent); }.steps { margin:12px 0 0; padding-left:22px; }.steps li { margin:12px 0; }.table-wrap { overflow-x:auto; }.table { width:100%; border-collapse:collapse; margin-top:14px; background:var(--paper); }.table th,.table td { padding:12px 14px; border:1px solid var(--line); text-align:left; vertical-align:top; }.table th { background:var(--soft); } footer { padding:22px 0 42px; color:var(--muted); font-size:13px; }
+    @media(max-width:760px) { .stats,.grid,.grid.two { grid-template-columns:1fr 1fr; } header { padding-top:36px; } } @media(max-width:460px) { .stats,.grid,.grid.two { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <p class="nav"><a href="index.html">← 문서 목록</a></p>
+      <p class="eyebrow">Threads 수익화 분석 · 2026-09-10</p>
+      <h1>커스텀 데스크톱 고양이,<br>조회가 아닌 상품으로 수익화하기</h1>
+      <p class="lead">픽셀 아트 데스크톱 펫 데모가 받은 반응을 바탕으로, 저가 디지털 상품 → 테마 팩 → 한정 커미션으로 확장하는 현실적인 수익 구조를 설계했다.</p>
+    </div>
+  </header>
+  <main class="wrap">
+    <section>
+      <h2>결론</h2>
+      <p>이 콘텐츠의 핵심 가치는 “고양이를 보는 것”이 아니라 <strong>내 취향과 반려묘를 화면 위 오브젝트로 바꾸는 경험</strong>이다. 따라서 광고수익을 노리기보다, 무료 체험판으로 수요를 모은 뒤 유료 커스텀·시각 테마·한정 제작을 판매하는 편이 맞다.</p>
+      <div class="callout"><strong>우선순위:</strong> 단순하지만 안정적인 다운로드 상품을 먼저 출시하고, 반응이 검증된 꾸미기 요소만 유료 팩으로 확장한다.</div>
+    </section>
+    <section>
+      <h2>게시물에서 확인된 신호</h2>
+      <div class="stats">
+        <div class="stat"><strong>21,409</strong><span>조회</span></div>
+        <div class="stat"><strong>99.4%</strong><span>비팔로워 조회 비중</span></div>
+        <div class="stat"><strong>334</strong><span>저장</span></div>
+        <div class="stat"><strong>547</strong><span>공유</span></div>
+      </div>
+      <p>도달 계정은 14,825개, 상호작용은 1,198개였다. 저장과 공유 합계(881)가 좋아요(303)보다 약 2.9배 높다. 이는 단순 감상형 게시물보다 <strong>소장하거나 친구에게 보여주고 싶은 개인화 오브젝트</strong>에 가까운 반응이다.</p>
+      <p class="muted">주의: 이 숫자는 콘텐츠 반응이지 구매 의도는 아니다. 가격과 결제 전환은 별도 실험으로 확인해야 한다.</p>
+    </section>
+    <section>
+      <h2>팔 수 있는 상품</h2>
+      <div class="grid two">
+        <article class="card"><h3>1. 유료 앱·다운로드</h3><p>Windows/macOS 데스크톱 펫. 고양이 6~10종, 색상·이름 변경, 기본 애니메이션을 제공한다.</p><p><strong>가설 가격:</strong> 무료 체험 + $3~7 일회성 구매 / $5~10 커스텀 팩</p></article>
+        <article class="card"><h3>2. 테마·코스메틱 팩</h3><p>품종, 색상, 계절 의상, 감정 표현, 픽셀 배경처럼 공유되는 시각 변화를 판매한다.</p><p><strong>가설 가격:</strong> 팩당 $1~3, 번들 $5</p></article>
+        <article class="card"><h3>3. 한정 커스텀 커미션</h3><p>실제 반려묘 사진을 픽셀 고양이·위젯으로 제작한다. 인기 옵션을 확인해 이후 팩으로 제품화한다.</p><p><strong>가설 가격:</strong> $25~80, 주간 슬롯 제한</p></article>
+        <article class="card"><h3>4. 크리에이터 번들</h3><p>스트리머·디스코드 커뮤니티용 스티커, 이모트, 오버레이를 공동 배포한다. 제휴는 상품 전환이 검증된 뒤 보조 수단으로 쓴다.</p></article>
+      </div>
+    </section>
+    <section>
+      <h2>30일 실행 계획</h2>
+      <ol class="steps">
+        <li><strong>1주차 — 판매 페이지:</strong> Gumroad·itch.io·Ko-fi 중 한 곳에 대기자/선주문 페이지를 열고, 품종·색상·이름·움직임 4개 옵션만 노출한다. 무료, $3 얼리버드, $7 커스텀 팩을 비교한다.</li>
+        <li><strong>2주차 — 전환형 영상:</strong> 첫 2초에 결과를 보여주고, 선택 UI → 변화 결과 → 실제 동작 순서로 구성한다. CTA는 “다음 팩에 넣을 품종을 댓글로 남기기” 또는 프로필 링크 중 하나만 사용한다.</li>
+        <li><strong>3주차 — 첫 유료 팩:</strong> 반응 1위 테마를 출시하고, 커미션은 5개 슬롯만 열어 실제 지불의사를 확인한다.</li>
+        <li><strong>4주차 — 수치 판정:</strong> 프로필 방문, 링크 클릭, 대기자 등록, 결제 시작·완료, 환불·지원 문의를 기준으로 계속·수정·보류를 결정한다.</li>
+      </ol>
+    </section>
+    <section>
+      <h2>매출 가설과 측정 기준</h2>
+      <div class="table-wrap"><table class="table"><thead><tr><th>단계</th><th>가정</th><th>매출 예시</th></tr></thead><tbody>
+        <tr><td>초기</td><td>조회 1%가 판매 페이지 방문, 방문 5%가 $5 상품 구매</td><td>약 $54 / 게시물</td></tr>
+        <tr><td>개선</td><td>조회 2% 방문, 방문 8%가 $7 상품 구매</td><td>약 $240 / 게시물</td></tr>
+        <tr><td>커미션</td><td>주 5건 × 평균 $40</td><td>주 $200</td></tr>
+      </tbody></table></div>
+      <p>위 수치는 예측이 아니라 검증용 가정이다. 핵심은 조회수보다 <strong>판매 페이지 방문률과 결제율</strong>이다.</p>
+    </section>
+    <section>
+      <h2>리스크와 방어선</h2>
+      <div class="grid two">
+        <article class="note"><strong>플랫폼 의존</strong><br>Threads 확산은 재현 보장이 없다. 이메일 대기자 명단·Discord·상품 페이지로 관객을 옮긴다.</article>
+        <article class="note"><strong>저작권·상표</strong><br>기존 캐릭터나 브랜드 이미지는 유료 팩에 쓰지 않고, 독자 아트 또는 라이선스 자산만 사용한다.</article>
+        <article class="note"><strong>기술지원 비용</strong><br>OS별 설치 이슈가 환불을 만든다. 지원 범위와 호환성을 명시하고 권한 요구를 최소화한다.</article>
+        <article class="note"><strong>측정 착시</strong><br>좋아요·조회가 아니라 결제 완료와 테마 팩 재구매를 제품 적합성의 기준으로 삼는다.</article>
+      </div>
+    </section>
+    <section>
+      <h2>다음 콘텐츠 실험</h2>
+      <ol class="steps"><li>“댓글 최다 품종을 오늘 밤 추가합니다” — 댓글 수와 대기자 전환 비교</li><li>“내 고양이 사진 → 데스크톱 펫” — 커미션 수요 확인</li><li>무료 기본판 vs $5 테마 팩 — 링크 클릭 대비 결제율 비교</li></ol>
+      <p><strong>계속 투자 기준:</strong> 2~3개 게시물 안에 대기자 100명 또는 첫 유료 구매 10건 이상. 공유는 높지만 링크 클릭이 낮으면 데모·CTA를 바꾸고, 클릭은 있으나 구매가 없으면 가격·신뢰·호환성을 먼저 점검한다.</p>
+    </section>
+    <section>
+      <h2>원본</h2>
+      <p><a href="https://www.threads.com/share/BATWZkMEzF/" rel="noopener noreferrer">Threads 게시물 열기</a> · 게시물 인사이트 화면에 표시된 수치를 기반으로 작성.</p>
+    </section>
+  </main>
+  <footer class="wrap">작성일: 2026-09-10 · Kyungpyo Docs</footer>
+</body>
+</html>
