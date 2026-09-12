@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI 반도체 인퍼런스: KV Cache부터 Roofline까지</title>
+  <style>
+    :root { --ink:#15202b; --muted:#64748b; --paper:#fff; --bg:#f4f7fb; --navy:#102a43; --blue:#2563eb; --teal:#0f766e; --orange:#d97706; --line:#d9e2ec; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; line-height:1.75; background:var(--bg); color:var(--ink); }
+    main { max-width:960px; margin:0 auto; padding:44px 20px 64px; }
+    header { padding:34px; border-radius:18px; color:#fff; background:linear-gradient(125deg,#102a43,#1d4ed8); box-shadow:0 12px 28px #102a4330; }
+    h1 { margin:10px 0 12px; font-size:clamp(29px,5vw,46px); line-height:1.2; letter-spacing:-.04em; }
+    h2 { margin:42px 0 16px; font-size:25px; line-height:1.35; }
+    h3 { margin:0 0 8px; font-size:18px; }
+    p { margin:10px 0; }
+    a { color:var(--blue); }
+    .meta { color:#cbd5e1; font-size:14px; }
+    .eyebrow,.tag { display:inline-block; padding:3px 10px; border-radius:999px; font-size:13px; font-weight:700; }
+    .eyebrow { color:#dbeafe; background:#ffffff20; }
+    .tag { color:#075985; background:#e0f2fe; }
+    .lead,.card,.takeaway { background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:22px; box-shadow:0 3px 12px #102a4308; }
+    .lead { margin-top:24px; font-size:18px; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+    .card { min-height:100%; }
+    .accent { border-left:5px solid var(--blue); }
+    .warn { border-left-color:var(--orange); }
+    .flow { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px; margin:18px 0; }
+    .node { padding:16px; text-align:center; border-radius:12px; font-weight:700; background:#eaf2ff; border:1px solid #bfdbfe; }
+    .node.decode { background:#ecfdf5; border-color:#99f6e4; }
+    .arrow { color:var(--muted); font-size:26px; text-align:center; }
+    .formula { margin:16px 0; padding:18px; color:#e2e8f0; background:#172b4d; border-radius:12px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; overflow-x:auto; }
+    .table-wrap { overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+    th,td { padding:13px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line); }
+    th { background:#eef4ff; }
+    tr:last-child td { border-bottom:0; }
+    ul,ol { padding-left:24px; }
+    li { margin:7px 0; }
+    .takeaway { border:2px solid #93c5fd; background:#f8fbff; font-size:18px; }
+    footer { margin-top:42px; padding-top:18px; border-top:1px solid var(--line); color:var(--muted); font-size:14px; }
+    @media (max-width:650px) { main { padding:24px 14px 44px; } header { padding:25px; } .grid { grid-template-columns:1fr; } .flow { grid-template-columns:1fr; } .arrow { transform:rotate(90deg); } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <span class="eyebrow">AI Frontier Korea · EP 112</span>
+      <h1>AI 반도체 안에서 일어나는 일들<br>KV Cache부터 Roofline까지</h1>
+      <p>LLM 인퍼런스가 왜 메모리·대역폭·스케줄링의 문제인지, 그리고 특화 AI 칩이 어디에서 경쟁력을 갖는지 정리한 기술 강의 요약</p>
+      <p class="meta">출연: HyperAccel 이진원 CTO · 게시: 2026-09-01 · 길이: 1시간 44분</p>
+    </header>
+
+    <section class="lead">
+      <strong>한 줄 요약:</strong> LLM 서비스의 승부는 단순 FLOPS가 아니라, <strong>KV cache를 얼마나 효율적으로 보관·이동·재사용하고</strong>, prefill과 decode라는 성격이 다른 작업을 얼마나 잘 분리·스케줄링하느냐에 달려 있다. 이 때문에 AI 인프라는 GPU 단일 체제에서 여러 특화 칩이 결합하는 <strong>heterogeneous computing</strong>으로 이동한다.
+    </section>
+
+    <section>
+      <h2>1. 왜 인퍼런스가 핵심 산업 문제가 되었나</h2>
+      <div class="grid">
+        <article class="card accent"><span class="tag">수요</span><h3>토큰 사용량의 폭발</h3><p>모델 사용량이 급증하면서 훈련뿐 아니라 실제 응답을 만드는 인퍼런스 수요가 데이터센터 증설을 이끌고 있다. 전력과 컴퓨트 공급은 수요를 계속 뒤따라가는 구조다.</p></article>
+        <article class="card accent"><span class="tag">경제성</span><h3>컴퓨트의 단가 압력</h3><p>매출 성장보다 컴퓨트 투자 증가가 더 빠르면, 인퍼런스 마진·GPU 배분만으로는 부족하다. 결국 토큰당 비용을 낮추는 하드웨어와 서빙 소프트웨어가 중요해진다.</p></article>
+      </div>
+      <p>HyperAccel의 Bertha는 이 문제에 대해 HBM 대신 LPDDR을 사용해 전력과 가격을 낮추려는 접근이다. 핵심은 이론 대역폭 자체뿐 아니라, 실제 워크로드에서 그 대역폭을 얼마나 높은 비율로 활용하는가다.</p>
+    </section>
+
+    <section>
+      <h2>2. LLM 인퍼런스의 두 단계</h2>
+      <div class="flow"><div class="node">Prefill<br><small>입력 프롬프트 전체를 병렬 처리</small></div><div class="arrow">→</div><div class="node decode">Decode<br><small>출력 토큰을 한 개씩 순차 생성</small></div></div>
+      <div class="table-wrap"><table><thead><tr><th>단계</th><th>무엇을 하나</th><th>중요 지표</th><th>주된 성격</th></tr></thead><tbody>
+        <tr><td><strong>Prefill</strong></td><td>긴 프롬프트의 모든 토큰을 한 번에 계산하고 첫 출력 토큰을 준비한다.</td><td>TTFT (Time To First Token)</td><td>병렬성이 높아 compute를 잘 활용한다.</td></tr>
+        <tr><td><strong>Decode</strong></td><td>직전 토큰을 입력으로 다음 토큰을 반복 생성한다.</td><td>TBT / TPOT (토큰 간 시간)</td><td>순차적이며 매 단계 메모리에서 모델·KV를 읽는다.</td></tr>
+      </tbody></table></div>
+      <p>사용자는 첫 답이 빨리 나오는 TTFT와, 답변이 끊기지 않고 이어지는 TBT를 모두 체감한다. 둘은 같은 최적화로 동시에 해결되지 않는다.</p>
+    </section>
+
+    <section>
+      <h2>3. KV Cache: decode가 메모리 문제인 이유</h2>
+      <p>Transformer의 attention은 현재 토큰이 앞선 모든 토큰을 참고한다. 이전 토큰의 Key와 Value를 매번 다시 계산하지 않도록 저장한 것이 <strong>KV cache</strong>다. 계산은 아끼지만, 문맥이 길고 동시 사용자가 많아질수록 저장량이 빠르게 커진다.</p>
+      <div class="formula">KV cache 크기 ≈ 2 × layers × sequence length × KV heads × head dimension × bytes per element</div>
+      <ul>
+        <li><strong>문제:</strong> decode마다 현재 토큰의 계산보다, 거대한 모델 가중치와 누적된 KV cache를 메모리에서 읽는 시간이 지배적이 된다.</li>
+        <li><strong>완화:</strong> GQA는 KV head 수를 줄이고, KV quantization은 표현 정밀도를 낮춘다. MLA는 cache 표현 자체를 더 압축한다.</li>
+        <li><strong>결과:</strong> 메모리 용량과 bandwidth가 인퍼런스의 직접적인 서비스 품질·비용 요인이 된다.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>4. Arithmetic Intensity와 Roofline</h2>
+      <div class="grid">
+        <article class="card"><h3>Arithmetic Intensity</h3><p><strong>이동한 데이터 1바이트당 수행한 연산량</strong>이다. 값이 낮으면 데이터를 읽는 시간이, 높으면 연산기가 일을 마치는 시간이 병목이 된다.</p></article>
+        <article class="card"><h3>Roofline 모델</h3><p>하드웨어의 최대 연산 성능과 메모리 대역폭을 함께 놓고, 워크로드가 <strong>compute-bound</strong>인지 <strong>memory-bound</strong>인지 읽는 지도다.</p></article>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>작업</th><th>대체로 병목</th><th>효율을 높이는 방법</th></tr></thead><tbody>
+        <tr><td>Prefill / 큰 행렬 연산</td><td>Compute</td><td>병렬 실행, 큰 batch, 높은 연산 활용률</td></tr>
+        <tr><td>Decode / attention</td><td>Memory bandwidth</td><td>KV 절감, 더 큰 batch, 빠른 메모리·데이터 이동</td></tr>
+        <tr><td>MoE의 개별 expert</td><td>낮은 arithmetic intensity 가능성</td><td>expert별 batch 감소를 고려한 특화 배치</td></tr>
+      </tbody></table></div>
+      <p>따라서 칩의 "TOPS가 더 높다"만으로는 서빙 성능을 설명하기 어렵다. 실제 배치 크기와 모델 구조, KV 처리 방식이 어느 지점에서 roofline을 만나는지 봐야 한다.</p>
+    </section>
+
+    <section>
+      <h2>5. 서빙 최적화: 서로 다른 부하를 함께 다루는 법</h2>
+      <div class="grid">
+        <article class="card"><h3>Continuous batching</h3><p>요청을 고정 배치 단위로 끝까지 묶지 않고, 끝난 요청을 빼고 새 요청을 즉시 넣는다. 유휴 슬롯을 줄여 decode 처리량을 높인다.</p></article>
+        <article class="card"><h3>PagedAttention</h3><p>KV cache를 연속 메모리 하나로 잡지 않고 페이지 단위로 관리한다. 단편화와 과도한 선할당을 줄여 더 많은 요청을 수용한다.</p></article>
+        <article class="card"><h3>Chunked prefill</h3><p>긴 prefill을 작은 조각으로 나눠 decode와 섞어 처리한다. 한 요청의 긴 입력이 다른 사용자의 토큰 생성을 막는 현상을 줄인다.</p></article>
+        <article class="card"><h3>Speculative decoding</h3><p>작은 draft 모델이 여러 후보 토큰을 미리 만들고, 큰 모델이 묶어서 검증한다. 순차적인 decode 횟수를 줄이는 방식이다.</p></article>
+      </div>
+      <article class="card warn" style="margin-top:16px"><h3>Prefill–Decode Disaggregation</h3><p>prefill용 pool과 decode용 pool을 분리해 각자의 하드웨어·스케줄링 목표를 최적화한다. 다만 KV cache를 두 pool 사이로 넘기는 비용이 생기므로, 고속 네트워크와 KV 전송·저장 전략이 함께 필요하다.</p></article>
+    </section>
+
+    <section>
+      <h2>6. Agentic AI가 만드는 다음 병목</h2>
+      <p>에이전트는 한 번 묻고 한 번 답하는 챗봇보다 긴 작업 흐름을 만든다. 도구 호출, 사람의 확인 대기, 반복적인 문맥 복귀가 늘면서 KV cache의 유효 기간과 재사용 가능성이 핵심 운영 문제가 된다.</p>
+      <ul>
+        <li><strong>골든타임:</strong> 사람이 응답하거나 외부 도구가 끝날 때까지 KV를 GPU 메모리에 계속 붙들어 두면 비싸다.</li>
+        <li><strong>계층형 메모리:</strong> 재계산보다 KV를 CPU 메모리·SSD·원격 저장소에서 빠르게 가져오는 편이 나을 수 있다.</li>
+        <li><strong>캐시 관리:</strong> 어떤 KV를 유지·압축·내보내기·폐기할지 결정하는 것이 모델 품질과 인프라 비용을 함께 좌우한다.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>7. 결론: 단일 GPU 시대에서 이기종 조합으로</h2>
+      <div class="takeaway"><strong>앞으로의 AI 팩토리는 한 종류의 칩이 전부 처리하는 구조가 아니라, GPU·LPU·대용량 메모리·네트워크가 각자 잘하는 구간을 맡는 파이프라인이 될 가능성이 높다.</strong><br>GPU는 범용적이고 강한 compute를, 특화 칩은 낮은 arithmetic intensity·특정 메모리 패턴·가격·전력 효율의 이점을 제공한다. 핵심은 어떤 모델과 workload에서 어떤 조합이 비용·지연시간·처리량의 최적점을 만드는지다.</div>
+    </section>
+
+    <section>
+      <h2>타임라인</h2>
+      <p><a href="https://youtu.be/9Qf_QLt7IWY?t=901">15:01</a> Prefill·decode · <a href="https://youtu.be/9Qf_QLt7IWY?t=1592">26:32</a> KV cache · <a href="https://youtu.be/9Qf_QLt7IWY?t=2448">40:48</a> Roofline · <a href="https://youtu.be/9Qf_QLt7IWY?t=3651">1:00:51</a> vLLM/PagedAttention · <a href="https://youtu.be/9Qf_QLt7IWY?t=4733">1:18:53</a> PD disaggregation · <a href="https://youtu.be/9Qf_QLt7IWY?t=5003">1:23:23</a> Agentic AI · <a href="https://youtu.be/9Qf_QLt7IWY?t=5661">1:34:21</a> heterogeneous computing</p>
+    </section>
+
+    <footer>
+      <p>원본 영상: <a href="https://youtu.be/9Qf_QLt7IWY">AI Frontier Korea — EP 112. AI 반도체 안에서 일어나는 일들: KV Cache부터 Roofline까지</a></p>
+      <p>이 문서는 영상의 설명·자막을 바탕으로 핵심 논지를 재구성한 요약입니다. 2026-09-12 작성.</p>
+    </footer>
+  </main>
+</body>
+</html>
