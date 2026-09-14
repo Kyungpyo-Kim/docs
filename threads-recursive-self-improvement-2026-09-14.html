@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>인간이 만드는 마지막 AI? — 재귀적 자기개선(RSI) 정리</title>
+  <style>
+    :root { --ink:#182233; --muted:#667085; --paper:#fff; --line:#dbe2ea; --navy:#10212c; --blue:#176b87; --mint:#e8f4f3; --bg:#f4f7f9; }
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.7}
+    header{background:linear-gradient(135deg,#10212c,#174860);color:#fff;padding:64px 20px 52px}.wrap{width:min(900px,calc(100% - 36px));margin:auto}.kicker{margin:0 0 12px;color:#aee5dd;font-size:.83rem;font-weight:800;letter-spacing:.08em}h1{margin:0;max-width:760px;font-size:clamp(2rem,6vw,3.6rem);line-height:1.12;letter-spacing:-.04em}.lead{max-width:720px;margin:20px 0 0;color:#d8ebee;font-size:1.1rem}
+    main{padding:32px 0 64px}.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:28px;margin:18px 0;box-shadow:0 6px 24px rgba(15,35,50,.04)}h2{margin:0 0 14px;font-size:1.4rem;line-height:1.3}h3{margin:0 0 8px;font-size:1.05rem}p{margin:0 0 16px}.muted{color:var(--muted)}.quote{padding:18px 20px;border-left:4px solid var(--blue);background:#f0f8fa;border-radius:0 10px 10px 0;font-size:1.05rem}.roadmap{display:grid;gap:12px;counter-reset:level}.step{position:relative;padding:18px 18px 18px 70px;border:1px solid var(--line);border-radius:12px;background:#fff}.step::before{counter-increment:level;content:"L" counter(level);position:absolute;left:18px;top:18px;color:var(--blue);font-weight:850;font-size:1.15rem}.step h3{color:#153f51}.note{background:var(--mint);border-radius:10px;padding:18px}.links{display:flex;flex-wrap:wrap;gap:10px}.button{display:inline-block;background:var(--blue);color:#fff;padding:10px 14px;border-radius:8px;text-decoration:none;font-weight:750}.button.alt{background:#eef4f6;color:#19536a}a{color:var(--blue)}footer{color:var(--muted);font-size:.9rem;padding-top:8px}@media(max-width:560px){.card{padding:22px}.step{padding-left:64px}}
+  </style>
+</head>
+<body>
+  <header><div class="wrap"><p class="kicker">THREADS · RESEARCH NOTE · 2026.09.14</p><h1>인간이 만드는 마지막 AI?<br>재귀적 자기개선(RSI)의 5단계</h1><p class="lead">AI가 다음 AI를 만들고, 더 잘 만드는 방법까지 지속적으로 개선한다는 ‘재귀적 자기개선’의 개념과 연구 로드맵을 정리했습니다.</p></div></header>
+  <main class="wrap">
+    <section class="card"><h2>한눈에 보기</h2><p>상하이교통대와 Theseus Labs 등이 참여한 <em>The Last AI Built by Humans: Toward Genuine Recursive Self-Improvement</em>는 AI가 경험과 피드백을 일회성 응답에 그치지 않고, 미래의 개선 능력까지 바꾸는 과정을 다룹니다.</p><div class="quote">핵심은 단순히 “다음 답변을 더 잘하는 AI”가 아니라, <strong>개선 방법 자체를 축적·수정하며 다음 세대로 이어지는 시스템</strong>입니다.</div></section>
+    <section class="card"><h2>왜 주목할 만한가</h2><p>현재의 LLM은 대체로 한 작업 안에서 추론·반복을 수행하지만, 학습된 능력과 개선 전략을 스스로 영속적으로 바꾸는 데는 한계가 있습니다. 이 연구는 그 간극을 Headroom-Closed Index(HCI)로 살피고, 자율성의 범위를 기준으로 RSI 발전 단계를 제안합니다.</p><p class="muted">적용 가능성이 언급된 분야: 과학 발견, embodied intelligence(물리 환경에서 작동하는 지능), 소프트웨어 엔지니어링, 의료·산업 시스템.</p></section>
+    <section class="card"><h2>RSI 자율성 로드맵</h2><p class="muted">B0는 작업 내 반복(in-task iteration)으로, RSI 이전의 기준점입니다. 아래 L1–L5가 지속적인 개선에 대한 책임을 단계적으로 넓혀 갑니다.</p><div class="roadmap">
+      <article class="step"><h3>개선 실행 자율성</h3><p>사람이 정한 개선안을 시스템이 실행하고, 결과를 반영해 성능을 높입니다.</p></article>
+      <article class="step"><h3>개선 전략 자율성</h3><p>무엇을 어떻게 개선할지의 전략 선택까지 시스템이 맡습니다.</p></article>
+      <article class="step"><h3>미래 경험 획득 자율성</h3><p>개선에 필요한 다음 경험·데이터·과제를 스스로 찾아 획득합니다.</p></article>
+      <article class="step"><h3>배포·환경 적응 자율성</h3><p>실제 환경에 배포된 뒤 변화와 피드백에 맞춰 개선 루프를 조정합니다.</p></article>
+      <article class="step"><h3>재귀적 메타 개선</h3><p>개선 대상뿐 아니라 <strong>개선하는 메커니즘</strong> 자체를 다시 개선합니다. 연구가 말하는 ‘genuine RSI’의 목표 단계입니다.</p></article>
+    </div></section>
+    <section class="card"><h2>읽을 때의 관점</h2><div class="note"><strong>가능성 ≠ 즉시 실현.</strong> 이 글은 RSI의 개념·측정·발전 경로를 제시하는 연구/서베이 성격의 자료입니다. 특히 높은 단계로 갈수록 검증 가능한 피드백, 안전한 배포, 경험의 재사용, 인간의 감독과 같은 과제가 더 중요해집니다.</div></section>
+    <section class="card"><h2>원문과 참고 자료</h2><div class="links"><a class="button" href="https://www.threads.com/@choi.openai/post/DdRFkFOD-9a" target="_blank" rel="noopener">Threads 원문</a><a class="button alt" href="https://theseus-labs-rsi.github.io/" target="_blank" rel="noopener">Theseus Labs 프로젝트 페이지</a><a class="button alt" href="https://theseus-labs-rsi.github.io/research/rsi-overview-v11.pdf" target="_blank" rel="noopener">연구 PDF</a></div></section>
+    <footer>정리 기준: 공유된 Threads 게시물의 공개 본문·이미지 및 연결된 프로젝트 페이지. 원문 주장과 연구의 의미를 구분해 요약했습니다.</footer>
+  </main>
+</body>
+</html>
