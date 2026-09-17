@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LLM in a Flash → Exynos NPU: 제품 아키텍처 시사점</title>
+  <style>
+    :root{--ink:#172033;--muted:#536176;--bg:#f5f7fb;--card:#fff;--line:#dce3ed;--navy:#0c1e36;--blue:#1167b1;--teal:#067b78;--warn:#fff4df;--warn-line:#e6b45d;--code:#eff4fa}*{box-sizing:border-box}body{margin:0;color:var(--ink);background:var(--bg);font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.7}.hero{background:linear-gradient(120deg,#0a1830,#133d62);color:#fff;padding:58px 20px 48px}.wrap{width:min(980px,calc(100% - 36px));margin:auto}.eyebrow{color:#79d8db;font-weight:800;font-size:.85rem;letter-spacing:.08em;text-transform:uppercase;margin:0 0 12px}h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1.16;letter-spacing:-.04em;margin:0;max-width:850px}.subtitle{max-width:760px;color:#d4e5f5;font-size:1.1rem;margin:18px 0 0}.meta{margin-top:22px;color:#b6cde2;font-size:.9rem}main{padding:34px 0 58px}section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px;margin:18px 0}h2{font-size:1.45rem;line-height:1.3;margin:0 0 16px;letter-spacing:-.025em}h3{font-size:1.08rem;margin:25px 0 8px}p{margin:9px 0 14px}.callout{background:#eaf5f7;border-left:5px solid var(--teal);padding:16px 18px;border-radius:0 9px 9px 0}.caution{background:var(--warn);border-left:5px solid var(--warn-line);padding:16px 18px;border-radius:0 9px 9px 0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.tile{border:1px solid var(--line);border-radius:10px;padding:17px}.tile h3{margin:0 0 8px;color:var(--blue)}ul,ol{padding-left:1.25em;margin:10px 0}li{margin:7px 0}table{border-collapse:collapse;width:100%;font-size:.95rem}th,td{padding:12px 10px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}th{color:#314158;background:#f2f6fa}code{background:var(--code);padding:2px 5px;border-radius:4px}a{color:#075fa8;font-weight:700}footer{color:var(--muted);font-size:.9rem;padding:4px 0 42px}@media(max-width:680px){.grid{grid-template-columns:1fr}section{padding:22px 18px}table{font-size:.85rem}.hero{padding-top:42px}}
+  </style>
+</head>
+<body>
+  <header class="hero"><div class="wrap">
+    <p class="eyebrow">Exynos NPU · architecture note</p>
+    <h1>LLM in a Flash가 최신 Apple 온디바이스 AI에 남긴 것 — Exynos NPU 개발 관점</h1>
+    <p class="subtitle">DRAM보다 큰 모델을 NAND에 두고 실행하는 문제는 NPU TOPS 경쟁보다 시스템 데이터 이동·라우팅·QoS 설계의 문제다.</p>
+    <p class="meta">2026-09-17 · 공개 자료 기반 기술 검토 · 제품 내부 구현은 추정하지 않음</p>
+  </div></header>
+  <main class="wrap">
+    <section>
+      <h2>판정: 원 논문의 문제 설정은 Apple의 최신 제품 모델 아키텍처에 명시적으로 계승됐다</h2>
+      <div class="callout"><strong>공개 확인 사실.</strong> Apple은 AFM 3 Core Advanced(온디바이스 200억 파라미터 희소 모델)의 전체 가중치를 NAND에 저장하고, 요청에 맞는 expert만 DRAM에 적재한다고 밝혔다. 한 요청에서 활성화되는 파라미터는 10~40억 개다. 이는 <em>LLM in a Flash</em>의 “DRAM을 초과한 LLM을 flash에서 가중치 스트리밍으로 실행”한다는 핵심 목표와 직접 맞닿아 있다.</div>
+      <p>다만 Apple이 원 논문의 <em>windowing</em> 및 <em>row-column bundling</em>을 그대로 제품에 사용한다고 공개한 적은 없다. 최신 구조는 IFP 기반 sparse expert, shared expert, 프롬프트 단위 expert 선택이라는 더 상위의 데이터 이동 최소화 방식이다.</p>
+    </section>
+
+    <section>
+      <h2>기술 대응표: 논문에서 제품 아키텍처로</h2>
+      <table><thead><tr><th>문제 / 기법</th><th>LLM in a Flash</th><th>AFM 3 Core Advanced 공개 설명</th><th>Exynos NPU에 주는 질문</th></tr></thead><tbody>
+        <tr><td>메모리 초과</td><td>가중치는 flash, 작업 집합만 DRAM</td><td>20B 전체는 NAND, 선택 expert만 DRAM</td><td>모델-residency를 DRAM 전량 상주로 고정할 것인가?</td></tr>
+        <tr><td>전송량 절감</td><td>활성 neuron 재사용(windowing)</td><td>shared expert 상시 상주 + routed expert만 교체</td><td>공통 경로와 요청별 경로를 아키텍처/컴파일러에서 분리할 수 있는가?</td></tr>
+        <tr><td>I/O 형태</td><td>더 크고 연속적인 read(row-column bundling)</td><td>토큰마다 swap하지 않고 프롬프트 단위로 expert 고정</td><td>NAND read의 burst·연속성·큐잉을 runtime이 통제하는가?</td></tr>
+        <tr><td>희소성</td><td>activation sparsity를 I/O 계획에 반영</td><td>1~4B active params; generation 중 주기적 재선택</td><td>router 정확도/재선택 주기와 TTFT·TPOT의 trade-off를 계측하는가?</td></tr>
+      </tbody></table>
+    </section>
+
+    <section>
+      <h2>개발 우선순위: NPU 단독 최적화가 아니라 SoC 실행 경로</h2>
+      <div class="grid">
+        <div class="tile"><h3>1. Storage → DRAM → NPU 파이프라인</h3><p>병목은 MAC이 아니라 NAND 지연·대역폭 변동, 메모리 복사, DRAM 대역폭 경쟁이 될 수 있다. NPU가 I/O와 독립적으로 놀지 않도록 double-buffering, asynchronous DMA, expert prefetch를 runtime 수준에서 묶어야 한다.</p></div>
+        <div class="tile"><h3>2. Prompt-level routing</h3><p>Apple의 공개 설계는 토큰 단위 교체가 NAND에 부적합하다고 명시한다. router가 요청 초기에 expert set을 정하고, 생성 중 드문 재선택만 수행하도록 만들면 random I/O를 예측 가능한 batch read로 바꿀 수 있다.</p></div>
+        <div class="tile"><h3>3. Shared weights의 배치</h3><p>항상 활성인 shared expert와 attention/KV 관련 텐서는 DRAM/NPU 접근성이 좋은 영역에 상주시킬 후보다. streamed expert와 물리적으로 분리해 eviction이 공통 경로를 훼손하지 않게 해야 한다.</p></div>
+        <div class="tile"><h3>4. 컴파일러 ABI</h3><p>expert를 독립적인 loadable segment로 취급하고, alignment·tile shape·양자화 그룹이 NAND block 및 NPU tensor layout과 함께 설계돼야 한다. 사후 변환은 I/O locality를 깨기 쉽다.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>실험 설계: TOPS 대신 아래 지표를 같이 봐야 한다</h2>
+      <ol>
+        <li><strong>TTFT / TPOT 분리:</strong> 첫 expert 적재 비용과 steady-state decode 비용을 따로 보고, router 재선택 시 p50/p95/p99 stall을 기록한다.</li>
+        <li><strong>전송 효율:</strong> 요청당 NAND bytes, useful-weight bytes, read size 분포, contiguous-read 비율, cache-hit rate를 수집한다.</li>
+        <li><strong>DRAM 경쟁:</strong> NPU, GPU, CPU, ISP가 동시에 동작하는 모바일 시나리오에서 DRAM bandwidth와 QoS tail latency를 계측한다.</li>
+        <li><strong>전력/열:</strong> 단기 token/s뿐 아니라 NAND read와 DRAM traffic을 포함한 tokens/J, 연속 생성 throttling, storage 열 영향을 비교한다.</li>
+        <li><strong>품질-시스템 연동:</strong> active-parameter budget과 expert 재선택 주기를 바꾸면서 task quality, TTFT, TPOT, energy를 한 그래프에 올린다.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>권장 프로토타입</h2>
+      <p><strong>목표:</strong> “온디바이스 20B급 sparse model이 가능한가”가 아니라 <strong>“어떤 prompt distribution에서 NAND-streamed expert가 체감 가능한 TPOT와 전력을 유지하는가”</strong>를 답한다.</p>
+      <ul>
+        <li>shared/routed expert 비율이 다른 작은 MoE 3종을 준비하고, 동일한 활성 파라미터 예산으로 비교한다.</li>
+        <li><code>no prefetch</code> / <code>router prefetch</code> / <code>oracle prefetch</code>를 비교해 router 예측 오차의 상한을 분리한다.</li>
+        <li>expert를 단일 연속 file layout과 분산 layout에 각각 배치해 NAND read amplification과 TPOT tail을 측정한다.</li>
+        <li>foreground UI·camera·network 부하와 공존시켜 메모리 QoS 정책의 효과를 확인한다.</li>
+      </ul>
+      <div class="caution"><strong>주의.</strong> Apple 공개 자료는 특정 A/M 칩, NPU ISA, NAND controller 정책, cache hierarchy를 밝히지 않는다. 따라서 이를 Apple 칩 기능의 역설계 근거로 쓰면 안 된다. 이 문서는 모델/시스템 아키텍처 차원의 재현 가능한 가설로 한정한다.</div>
+    </section>
+
+    <section>
+      <h2>짧은 결론</h2>
+      <p>이 흐름은 “더 큰 NPU”보다 <strong>storage-aware sparse inference</strong>가 모바일 LLM 확장의 다음 경계임을 보여준다. Exynos에서는 NPU의 dense compute 효율을 유지하면서도, NAND-DRAM-NPU 데이터 경로·expert residency·router를 하나의 제품 성능 단위로 공동 최적화하는 것이 핵심이다.</p>
+    </section>
+
+    <section>
+      <h2>출처 및 검증 범위</h2>
+      <ul>
+        <li><a href="https://arxiv.org/abs/2312.11514">Alizadeh-Vahid et al., “LLM in a Flash: Efficient Large Language Model Inference with Limited Memory”</a> (arXiv:2312.11514; ACL 2024). flash weight streaming, windowing, row-column bundling의 원 출처.</li>
+        <li><a href="https://machinelearning.apple.com/research/introducing-third-generation-of-apple-foundation-models">Apple Machine Learning Research, “Introducing the Third Generation of Apple’s Foundation Models”</a> (2026-06-08; 2026-09-09 업데이트). AFM 3 Core Advanced의 NAND 저장, prompt-level routing, DRAM expert loading의 공개 출처.</li>
+      </ul>
+    </section>
+  </main>
+  <footer class="wrap">Prepared as a public-source engineering note. Last updated 2026-09-17.</footer>
+</body>
+</html>
