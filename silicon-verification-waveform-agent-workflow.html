@@ -12,6 +12,29 @@
 <main class="wrap">
 <section><h2>목표와 실행 환경</h2><p>에이전트는 RTL 사양을 분석하고 테스트벤치와 검증 시나리오를 작성한 뒤, 사용 가능한 시뮬레이터로 실행합니다. 생성된 파형을 <span class="pill">wave-mcp</span> 등 실제 파형 분석 도구로 확인하고 핵심 구간을 이미지로 내보냅니다.</p><ul><li><b>시뮬레이터:</b> VCS, Xcelium, Verilator, Icarus Verilog 중 설치·라이선스·기능이 확인된 도구</li><li><b>파형 분석:</b> 사용 가능한 wave-mcp MCP 서버 및 파형 포맷 지원 도구</li><li><b>변환/렌더링:</b> 설치된 fsdb2fst, fsdb2vcd, GTKWave 또는 프로젝트 내 검증된 렌더러</li></ul></section>
 <div class="callout"><strong>중요한 구현 주의</strong><p>FSDB 덤프 시스템 태스크(<span class="pill">$fsdbDumpfile</span>, <span class="pill">$fsdbDumpvars</span>)는 보통 Synopsys VCS/Verdi 환경에 의존합니다. Icarus/Verilator 등에서 같은 방식으로 동작한다고 가정하지 말고, 도구별 덤프 포맷·컴파일 옵션을 확인하세요. 또한 아래에 전달된 <span class="pill">fsdb2png.py</span> 예시는 임의의 샘플 WaveJSON을 만드는 데모일 뿐 실제 FSDB 신호를 읽지 않습니다. 진짜 파형 검증·PNG라고 보고하지 말고, 파형 데이터 추출과 렌더링을 실제 구현·검증해야 합니다.</p></div>
+<section><h2>전체 아키텍처 및 파이프라인</h2><pre><code>[RTL + Spec]
+    → Step 1: Testbench 생성 (환경에 맞는 waveform dump 설정)
+    → Step 2: 시뮬레이션 컴파일 및 실행
+    → Step 3: wave-mcp 기반 표적형 검증
+        ├─ prepare_session: 파형 준비/변환/인덱싱
+        ├─ list_scopes / find_signals: 계층 및 신호 탐색
+        ├─ get_transitions: clock/reset/handshake 이벤트 확인
+        ├─ read_signal / read_vector: 시점별 값 검증
+        ├─ trace_driver / find_x: 실패 원인 탐색 (지원 시)
+        └─ Self-Correction: 수정 후 재실행 및 재검증
+    → Step 4 (PASS일 때): PNG 파형 + 대화형 뷰어 (지원 시)</code></pre><p>에이전트는 원시 파형 전체를 대화 맥락에 덤프하지 않고 필요한 계층·신호·시점만 질의합니다. wave-mcp의 정확한 도구명과 인자는 설치된 서버의 schema로 확인하세요. 아래 도구 시퀀스는 사용자 제공 워크플로우 예시이며 모든 서버에서 제공된다고 보장하지 않습니다.</p></section>
+<section><h2>Claude Code / MCP 설정 예시</h2><p>프로젝트의 MCP 설정에 넣는 형태의 예시입니다. 실제 실행 파일, Python 환경, VERDI_HOME 경로는 설치 환경에 맞춰 수정하고, wave-mcp 패키지가 해당 실행법을 지원하는지 확인하세요.</p><pre><code>{
+  "mcpServers": {
+    "wave-mcp": {
+      "command": "python",
+      "args": ["-m", "wave_mcp"],
+      "env": {
+        "VERDI_HOME": "/tools/synopsys/verdi"
+      }
+    }
+  }
+}</code></pre></section>
+<section><h2>표적형 wave-mcp 질의 시퀀스</h2><table><thead><tr><th>순서</th><th>도구 예시</th><th>입력/목적</th></tr></thead><tbody><tr><td>1</td><td><code>prepare_session</code></td><td><code>wave_path="wave.fsdb"</code>, RTL/design path (서버 schema 확인). 파형 준비, 변환/인덱싱 상태를 점검합니다.</td></tr><tr><td>2</td><td><code>list_scopes</code> / <code>find_signals</code></td><td>계층(scope)과 패턴에 맞는 전체 신호 경로를 찾습니다.</td></tr><tr><td>3</td><td><code>get_transitions</code></td><td>clock/reset/valid/ready/write enable 등 지정 신호의 엣지와 이벤트 시각을 찾습니다.</td></tr><tr><td>4</td><td><code>read_signal</code> / <code>read_vector</code></td><td>관심 timestamp에서 상태·버스 값을 읽고 RTL 사양과 대조합니다.</td></tr><tr><td>5</td><td><code>diff_waveforms</code> (선택)</td><td>골든 파형 비교 기능이 실제 제공될 때만 사용하고 최초 불일치 시각을 확인합니다.</td></tr><tr><td>6</td><td><code>trace_driver</code> / <code>find_x</code> (실패 시)</td><td>해당 신호/시점의 드라이버 또는 X 원인을 조사합니다. 도구의 지원 여부를 먼저 확인합니다.</td></tr><tr><td>7</td><td><code>open_wave_view</code> (선택)</td><td>지원될 경우 중요 신호와 marker timestamp로 사람 검토용 URL을 얻습니다.</td></tr></tbody></table><p>위 함수명과 파라미터는 예시입니다. 해당 도구가 MCP 서버에 없거나 인자 계약이 다른 경우 추측하여 호출하지 말고 실제 도구 설명에 맞춰 조정합니다.</p></section>
 <section><h2>표준 검증 절차</h2><ol class="steps"><li><b>테스트벤치 작성:</b> 사양, reset, 코너 케이스와 프로토콜 타이밍을 확인해 <span class="pill">tb_&lt;module&gt;.sv</span>를 작성합니다. 시뮬레이터 호환성에 맞는 덤프 설정을 포함합니다.</li><li><b>컴파일 및 실행:</b> 실제 환경에 맞는 명령으로 컴파일·실행하고 로그와 종료 코드를 확인합니다. 생성된 파형 파일이 존재하고 0바이트가 아닌지 확인합니다.</li><li><b>표적형 파형 검증:</b> wave-mcp 세션을 준비하고 주요 신호 천이를 찾은 다음 이벤트 전후 신호값을 질의합니다. 원문 시뮬레이션 로그와 assertion 결과도 함께 확인합니다.</li><li><b>오류 수정:</b> 기대값과 불일치하면 설계/테스트 조건을 구분해 원인을 찾고 TB 또는 설정을 수정한 뒤 재실행합니다. PASS는 체크포인트가 실제 관측값으로 확인된 경우에만 선언합니다.</li><li><b>이미지 렌더링:</b> 확인된 신호와 시간 구간을 지정해 실제 파형 데이터에서 PNG를 생성합니다. PNG의 신호·시간축이 검증 구간과 일치하는지 확인합니다.</li><li><b>결과 보고:</b> PASS/FAIL, 시나리오별 근거, 핵심 타임스탬프·신호값, 실행 환경과 생성 산출물을 보고합니다. 불가능하거나 지원되지 않은 단계는 명확히 표시합니다.</li></ol></section>
 <section><h2>FSDB 덤프 예시</h2><p>VCS/Verdi처럼 FSDB 시스템 태스크를 지원하는 환경에서 사용할 수 있는 예시입니다. 최상위 테스트벤치 이름과 계층은 실제 프로젝트에 맞게 바꾸세요.</p><pre><code>initial begin
   $fsdbDumpfile("wave.fsdb");
@@ -87,32 +110,33 @@ if __name__ == "__main__":
     parser.add_argument("-t", "--range", dest="time_range", default="")
     args = parser.parse_args()
     convert_fsdb(args.input, args.output, args.signals, args.time_range)</code></pre></details><p>이 초안은 FSDB→FST 변환이 가능한지 확인하고 WaveDrom CLI 실행을 보여주는 예시용입니다. 실제 파형 PNG가 필요하면 샘플 블록을 wave-mcp/FST/VCD 파서에서 얻은 실제 신호·시간 데이터로 교체하고 검증해야 합니다. 아래 항목도 실환경 적용 전에 구현·확인하세요.</p><ul><li>실제 파형 파서/파형 MCP 결과에서 지정 신호와 시간 구간의 값을 추출</li><li>지원하지 않는 신호·시간 포맷·누락된 변환기에서 명확히 실패</li><li>명령은 shell 문자열 조합 대신 인자 배열로 실행하고 입력 경로를 안전하게 처리</li><li>WaveJSON 생성 후 렌더러 종료 코드와 출력 PNG 파일을 확인</li><li>이미 존재하는 변환 산출물이 오래된 결과인지 확인하거나 재생성 옵션 제공</li></ul><p><span class="pill">fsdb2png.py</span>는 실환경에서 파형 기반 구현과 테스트가 끝난 뒤에만 PASS 산출물로 사용하세요.</p></section>
-<section><h2>복사해서 바로 쓰는 사용자 프롬프트</h2><p>아래 블록을 복사한 뒤, 실제 RTL 파일과 요구 사양을 함께 제공하세요.</p><pre><code>아래 RTL 코드와 프로젝트 환경을 바탕으로 자동 검증 파이프라인을 실행해줘.
+<section><h2>복사해서 바로 쓰는 사용자 프롬프트</h2><p>아래 템플릿을 복사하고 RTL 및 사양 파일을 함께 전달하세요.</p><pre><code>아래 첨부한 RTL 모듈(fifo.v)과 프로젝트 사양을 바탕으로 검증 자동화 파이프라인을 실행해줘.
 
-[입력]
-- RTL 파일: fifo.v (첨부 또는 프로젝트 경로)
-- 관련 사양/인터페이스: 프로젝트 문서와 RTL을 먼저 확인하고 불확실한 부분은 명시할 것
-- 시뮬레이터 및 버전: 설치 상태를 확인해 선택할 것
+[사전 확인]
+- RTL 포트, parameter, clock/reset 극성, FIFO 깊이, handshake 및 read latency를 먼저 확인할 것.
+- 사용 가능한 시뮬레이터/버전, FSDB 지원 여부, wave-mcp 서버와 도구 schema를 조사할 것.
+- 설치되지 않았거나 현재 도구에서 지원되지 않는 기능은 가정하지 말고 제한으로 기록할 것.
 
-[요구사항]
-1. RTL의 포트, 클럭/리셋 극성, FIFO 깊이와 동작 지연을 확인한 뒤 fifo_tb.sv를 작성할 것.
-2. 사용 가능한 시뮬레이터로 컴파일·실행하고, 해당 환경이 지원하는 방식으로 파형을 생성할 것. VCS/Verdi에서 FSDB를 지원하면 wave.fsdb를 생성할 것. 지원되지 않으면 실제 지원 포맷과 제한을 보고할 것.
-3. 아래 시나리오를 검증할 것.
-   - Reset 해제 후 데이터 0xA1, 0xB2를 연속 Write
-   - Write 완료 후 FIFO Empty 신호가 Low로 내려가는지 확인
-   - Read 요청 후 출력 데이터가 순서대로 0xA1, 0xB2인지 확인
-   - FIFO 인터페이스의 실제 handshake와 출력 타이밍을 RTL 사양에 맞춰 샘플링
-4. 테스트벤치에 assertion 또는 명시적 비교를 넣고, 실패 시 종료 코드를 실패로 반환할 것.
-5. 생성한 파형을 실제 wave-mcp 도구로 열 수 있는지 확인할 것. prepare_session으로 로드하고 get_transitions로 주요 이벤트를 찾은 다음 read_signal로 이벤트 전후 값을 확인할 것. 도구가 없거나 실패하면 추측하지 말고 실패 사유를 기록할 것.
-6. 검증에 성공한 핵심 구간을 정해 실제 파형 데이터로 tb_result_waveform.png를 렌더링할 것. 샘플/고정값을 넣은 데모 이미지로 대체하지 말 것. 렌더링 도구가 없으면 이미지 미생성을 명시할 것.
-7. 코드/로그/파형을 근거로 결과를 보고할 것. 실행하지 않은 단계나 확인하지 못한 값을 성공으로 표현하지 말 것.
+[검증 요구사항]
+1. fifo_tb.sv를 작성하고 assertion 또는 명시적 비교를 넣을 것.
+2. 가능한 시뮬레이터로 컴파일·실행할 것. VCS/Verdi 환경이 FSDB를 지원할 때 wave.fsdb를 만들고, 그렇지 않으면 실제 지원되는 VCD/FST 등 포맷을 사용하며 제한을 보고할 것.
+3. 실제 FIFO 프로토콜에 따라 다음 동작을 검증할 것.
+   - reset 해제 후 wdata 0x55AA, 0x1234를 연속 write
+   - wr_en/ready 등 실제 handshake가 성립한 시점에 write가 수락되는지 확인
+   - read 요청 후 rdata가 0x55AA, 0x1234 순서로 나오는지 RTL의 latency/valid 규칙에 맞춰 확인
+4. 시뮬레이션 종료 코드, 로그, assertion 결과와 파형 파일의 존재/크기를 확인할 것.
+5. wave-mcp가 설치되어 있으면 prepare_session으로 파형을 준비하고, 계층/신호 탐색, get_transitions, read_signal/read_vector를 사용해 이벤트 시점과 버스 값을 확인할 것. 실패 시 지원되는 경우 trace_driver/find_x로 원인을 추적할 것. 도구명/인자는 실제 MCP schema를 따를 것.
+6. 불일치가 나오면 사양과 원인을 분석해 테스트벤치 자극/타이밍을 수정하고 다시 컴파일·실행·파형검증할 것. RTL을 고칠 필요가 있으면 변경 근거를 설명하고 수정 범위를 명시할 것. 반복 실패를 숨기지 말 것.
+7. PASS 이후에만 핵심 구간을 렌더링할 것. fsdb2png.py 예시가 고정 데모 데이터만 렌더링하는 경우 이를 검증 파형으로 사용하지 말 것. 실제 파형 값으로 PNG 생성이 불가능하면 미생성을 보고할 것. open_wave_view가 지원되면 인간 검토용 뷰어 URL도 제공할 것.
 
-[최종 보고 형식]
-- 판정: PASS 또는 FAIL (근거와 미수행 단계 포함)
-- 환경: 시뮬레이터/버전, 파형 도구 및 사용한 변환·렌더링 방법
-- 체크포인트: reset, empty, write/read 데이터 순서별 기대값·실측값·판정
-- 신호 트레이스: 핵심 타임스탬프와 clk/reset/valid/ready/data/empty 값
-- 산출물: 테스트벤치, 로그, 파형 파일, PNG의 경로와 파일 생성 여부</code></pre></section>
+[최종 결과]
+- 판정: PASS/FAIL과 각 체크포인트의 기대값·실측값·근거
+- 타임스탬프별 신호 트레이스: clk, reset, wr_en/ready, wdata, rd_en/valid, rdata, empty 등 실제 포트
+- 환경: 시뮬레이터/버전, 파형 포맷, wave-mcp 도구 사용 여부와 제약
+- 산출물 경로: fifo_tb.sv, 로그, wave.fsdb(또는 대체 파형), tb_result_waveform.png
+- 이미지 생성 여부와 open_wave_view URL (사용 가능할 때)
+- 미수행/실패 단계 및 원인
+실제로 실행하고 확인하지 않은 항목을 성공으로 표현하지 말 것.</code></pre></section>
 <section><h2>최종 보고 체크리스트</h2><table><thead><tr><th>항목</th><th>보고할 내용</th></tr></thead><tbody><tr><td>검증 판정</td><td>PASS/FAIL 및 시나리오별 assertion·실측 근거</td></tr><tr><td>신호 트레이스</td><td>핵심 시점, 신호 이름, 파형에서 읽은 값과 단위</td></tr><tr><td>환경/제약</td><td>시뮬레이터, 버전, MCP 도구, 변환기·렌더러, 미지원 단계</td></tr><tr><td>산출물</td><td>TB, 로그, 원본 파형, 실제 파형 기반 PNG의 경로·생성 상태</td></tr></tbody></table></section>
 <footer>검증 자동화 가이드 · 도구 지원 여부와 파형의 실제 데이터 근거를 우선 확인하세요.</footer>
 </main></body></html>
