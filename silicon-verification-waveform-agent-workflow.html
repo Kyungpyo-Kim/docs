@@ -5,7 +5,7 @@
 <title>Silicon Verification &amp; Waveform Agent Workflow</title>
 <style>
 :root{color-scheme:light;--bg:#f3f6f8;--paper:#fff;--ink:#172331;--muted:#5c6d7e;--line:#d8e1e8;--accent:#147d8d;--dark:#102a36;--code:#101b27;--soft:#e7f3f4}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 system-ui,-apple-system,"Segoe UI",sans-serif}header{background:var(--dark);color:#f6fbfd;padding:54px 22px 42px;border-bottom:6px solid var(--accent)}.wrap{width:min(980px,calc(100% - 36px));margin:auto}header p{color:#c6d8e0;max-width:760px}main{padding:30px 0 60px}section,.callout{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:24px;margin:0 0 18px}h1{font-size:clamp(32px,5vw,48px);line-height:1.15;margin:0}h2{font-size:25px;margin:0 0 12px}h3{font-size:18px;margin:20px 0 8px}a{color:var(--accent)}.label{display:inline-block;background:var(--soft);color:#125662;border-radius:999px;padding:3px 10px;font-weight:700;font-size:13px;margin-bottom:12px}.steps{counter-reset:s;list-style:none;padding:0}.steps li{counter-increment:s;margin:12px 0;padding-left:42px;position:relative}.steps li:before{content:counter(s);position:absolute;left:0;top:1px;background:var(--soft);color:#125662;border-radius:50%;width:28px;height:28px;text-align:center;font-weight:800}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--code);color:#e5edf5;padding:18px;border-radius:9px;overflow:auto;font:13px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace}.callout{border-left:5px solid #d08b22;background:#fffaf0}.callout strong{color:#744b00}.pill{font-family:ui-monospace,monospace;background:#eef2f5;padding:2px 6px;border-radius:4px}table{width:100%;border-collapse:collapse}th,td{text-align:left;border-bottom:1px solid var(--line);padding:10px;vertical-align:top}th{color:var(--muted)}footer{color:var(--muted);font-size:13px;padding:16px 0 36px}@media(max-width:650px){section,.callout{padding:18px}table{font-size:14px}}
-</style>
+button.copy-button{border:0;border-radius:7px;background:var(--accent);color:#fff;padding:11px 16px;font:inherit;font-weight:700;cursor:pointer}button.copy-button:hover{filter:brightness(.92)}#copyStatus{margin-left:12px;color:#12633b;font-weight:700}#promptText{display:block;width:100%;min-height:620px;margin-top:16px;padding:16px;border:1px solid var(--line);border-radius:9px;background:#f8fafb;color:var(--ink);font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre;overflow:auto}</style>
 </head>
 <body>
 <header><div class="wrap"><span class="label">RTL 검증 · FSDB · 파형 시각화</span><h1>Silicon Verification &amp;<br>Waveform Agent Workflow</h1><p>Claude Code, Cursor 등 코딩 에이전트가 RTL 테스트벤치 작성부터 시뮬레이션, FSDB 기반 파형 질의, 검증 결과 이미지 생성까지 수행하도록 하는 실행 가이드와 복사용 프롬프트입니다.</p></div></header>
@@ -110,33 +110,218 @@ if __name__ == "__main__":
     parser.add_argument("-t", "--range", dest="time_range", default="")
     args = parser.parse_args()
     convert_fsdb(args.input, args.output, args.signals, args.time_range)</code></pre></details><p>이 초안은 FSDB→FST 변환이 가능한지 확인하고 WaveDrom CLI 실행을 보여주는 예시용입니다. 실제 파형 PNG가 필요하면 샘플 블록을 wave-mcp/FST/VCD 파서에서 얻은 실제 신호·시간 데이터로 교체하고 검증해야 합니다. 아래 항목도 실환경 적용 전에 구현·확인하세요.</p><ul><li>실제 파형 파서/파형 MCP 결과에서 지정 신호와 시간 구간의 값을 추출</li><li>지원하지 않는 신호·시간 포맷·누락된 변환기에서 명확히 실패</li><li>명령은 shell 문자열 조합 대신 인자 배열로 실행하고 입력 경로를 안전하게 처리</li><li>WaveJSON 생성 후 렌더러 종료 코드와 출력 PNG 파일을 확인</li><li>이미 존재하는 변환 산출물이 오래된 결과인지 확인하거나 재생성 옵션 제공</li></ul><p><span class="pill">fsdb2png.py</span>는 실환경에서 파형 기반 구현과 테스트가 끝난 뒤에만 PASS 산출물로 사용하세요.</p></section>
-<section><h2>복사해서 바로 쓰는 사용자 프롬프트</h2><p>아래 템플릿을 복사하고 RTL 및 사양 파일을 함께 전달하세요.</p><pre><code>아래 첨부한 RTL 모듈(fifo.v)과 프로젝트 사양을 바탕으로 검증 자동화 파이프라인을 실행해줘.
+<section id="kickoff-prompt"><h2>복사해서 바로 쓰는 사용자 프롬프트</h2><p>아래에는 사용자가 앞서 보낸 통합 명세 전문을 넣었습니다. 버튼을 눌러 전체 내용을 클립보드에 복사할 수 있습니다.</p><button class="copy-button" type="button" id="copyPrompt">전체 프롬프트 복사</button><span id="copyStatus" role="status" aria-live="polite"></span><textarea id="promptText" readonly aria-label="복사할 전체 사용자 프롬프트">Silicon Verification &amp; Waveform Agent Workflow Specification
 
-[사전 확인]
-- RTL 포트, parameter, clock/reset 극성, FIFO 깊이, handshake 및 read latency를 먼저 확인할 것.
-- 사용 가능한 시뮬레이터/버전, FSDB 지원 여부, wave-mcp 서버와 도구 schema를 조사할 것.
-- 설치되지 않았거나 현재 도구에서 지원되지 않는 기능은 가정하지 말고 제한으로 기록할 것.
+이 문서는 AI 에이전트(Claude Code, Cursor 등)가 RTL 검증, FSDB 파형 생성, wave-mcp 툴체인을 활용한 정밀 신호 질의 및 검증, 그리고 최종 파형 시각화(PNG 이미지 생성 및 대화형 웹 뷰어)를 자동 수행하도록 지시하는 통합 워크플로우 명세서입니다.
+
+1. 전체 아키텍처 및 파이프라인
+
+[RTL + Spec] ──&gt; [Step 1: Testbench 생성 (FSDB Dump 삽입)]
+                        │
+                        ▼
+                 [Step 2: 시뮬레이션 컴파일 및 실행 (VCS/Xcelium/Verilator)]
+                        │
+                        ▼ (wave.fsdb 생성)
+                 [Step 3: wave-mcp 기반 표적형 검증 세션]
+                  ├─ prepare_session (FSDB -&gt; FST 자동 변환)
+                  ├─ get_transitions (Clock/Reset/Handshake 엣지 식별)
+                  ├─ read_signal / read_vector (시점별 신호 데이터 정합성 검증)
+                  ├─ trace_driver / find_x (Assertion 실패 시 원인 추적)
+                  └─ [Self-Correction Loop: 에러 발견 시 TB/RTL 자가 수정 후 재실행]
+                        │
+                        ▼ (검증 PASS)
+                 [Step 4: 파형 시각화 산출]
+                  ├─ fsdb2png.py / wavedrom-cli ──&gt; tb_result_waveform.png
+                  └─ open_wave_view ──&gt; 대화형 웹 뷰어 URL (인간 검토용)
+
+2. wave-mcp 툴 체인 및 세부 호출 워크플로우
+
+wave-mcp는 거대한 파형 전체를 LLM의 컨텍스트 윈도우에 밀어넣지 않고, 필요한 시점과 신호만 SQL처럼 표적 질의(Pinpoint Query)할 수 있는 30여 개의 전용 도구를 제공합니다.
+
+2.1 환경 설정 (Claude Code / MCP 설정)
+
+Claude Code 또는 IDE의 MCP 구성에 VERDI_HOME 환경변수를 포함하여 wave-mcp를 등록합니다.
+
+{
+  &quot;mcpServers&quot;: {
+    &quot;wave-mcp&quot;: {
+      &quot;command&quot;: &quot;python&quot;,
+      &quot;args&quot;: [&quot;-m&quot;, &quot;wave_mcp&quot;],
+      &quot;env&quot;: {
+        &quot;VERDI_HOME&quot;: &quot;/tools/synopsys/verdi&quot;
+      }
+    }
+  }
+}
+
+2.2 표준 wave-mcp 호출 시퀀스
+
+순서 | 호출 툴 (tool_name) | 주요 파라미터 | 목적 및 동작
+1 | prepare_session | wave_path: &quot;wave.fsdb&quot;, design_path: &quot;tb_top.sv&quot; | FSDB를 FST로 백그라운드 변환하고 신호 심볼 인덱싱 세션을 초기화합니다.
+2 | list_scopes / find_signals | pattern: &quot;*valid*&quot; | 관찰 대상 모듈 계층 및 확인하려는 신호 전체 계층 경로(Full Hierarchical Path)를 확보합니다.
+3 | get_transitions | signal: &quot;tb_top.clk&quot;, start_time: 0, end_time: 200 | 프로토콜 트랜잭션이 발생한 타임스탬프(상승/하강 엣지 시점)를 특정합니다.
+4 | read_signal / read_vector | signals: [&quot;tb.wr_en&quot;, &quot;tb.wdata&quot;], timestamp: 45 | 특정 클록 사이클 시점의 신호 비트 값 및 데이터 버스 값을 추출해 사양과 대조합니다.
+5 | diff_waveforms (선택) | golden_wave: &quot;gold.fst&quot;, target_wave: &quot;wave.fst&quot; | 골든 레퍼런스 모델이 있을 경우 최초 불일치 발생 타임스탬프를 원클릭 식별합니다.
+6 | trace_driver / find_x (실패 시) | signal: &quot;tb.dut.state&quot;, timestamp: 65 | 기대값과 다를 경우 해당 신호를 구동(Drive)한 상위 논리 게이트나 레지스터를 역추적합니다.
+7 | open_wave_view | signals: [&quot;clk&quot;, &quot;rst_n&quot;, &quot;data&quot;], marker_time: 45 | 브라우저 기반 GUI 파형 뷰어를 띄우고 문제 지점에 마커를 지정합니다.
+
+3. System Prompt (에이전트 시스템 규칙)
+
+프로젝트 루트의 CLAUDE.md, .cursorrules, 또는 시스템 프롬프트 설정 영역에 아래 내용을 지정합니다.
+
+# Role: Senior Silicon Verification &amp; Waveform Analysis Agent
+
+당신은 ASIC/FPGA 디지털 회로 설계 및 검증(Design Verification) 전문 AI 엔지니어입니다.
+주어진 RTL 사양을 분석하여 Testbench를 작성하고, 시뮬레이션을 실행한 후 `wave-mcp`를 통해 신호 정합성을 자율 검증하고 최종 검증 파형 이미지(`tb_result_waveform.png`)를 보고해야 합니다.
+
+## Execution Environment &amp; Tools
+1. 시뮬레이터: VCS, Xcelium, Verilator, Icarus Verilog 중 터미널 실행 가능한 엔진
+2. 파형 MCP 인터페이스: wave-mcp Server Tools
+3. 파형 바이너리 처리: Synopsys fsdb2fst (Verdi 라이브러리 연동)
+4. 이미지 렌더링: python fsdb2png.py 또는 wavedrom-cli
+
+## Verification Standard Operating Procedure (SOP)
+
+### Step 1. Testbench 작성 및 파형 덤프 설정
+- 테스트 사양(코너 케이스, 프로토콜 타이밍, 리셋 시퀀스)을 충족하는 SystemVerilog Testbench(`tb_&lt;module&gt;.sv`)를 작성합니다.
+- TB 내부에는 시뮬레이션 시간 및 모듈 계층을 고려하여 파형 덤프 블록을 반드시 포함합니다.
+  ```systemverilog
+  initial begin
+    $fsdbDumpfile(&quot;wave.fsdb&quot;);
+    $fsdbDumpvars(0, tb_&lt;module&gt;, &quot;+all&quot;);
+  end
+  ```
+
+### Step 2. 시뮬레이션 컴파일 및 실행
+CLI 명령어를 통해 시뮬레이션을 실행하고 빌드/런타임 에러가 없는지 확인합니다.
+예: `iverilog -g2012 -o sim.out rtl.v tb.sv &amp;&amp; vvp sim.out` 또는 `xrun -sv rtl.v tb.sv -access +rwc`
+wave.fsdb (또는 VCD/FST) 파일이 정상 생성되었는지 점검합니다.
+
+### Step 3. wave-mcp 표적형 검증 (Pinpoint Verification Sequence)
+전체 파형을 한꺼번에 읽지 않고 wave-mcp 도구를 순차 실행하여 논리적 검증을 완수합니다:
+- `prepare_session(wave_path=&quot;wave.fsdb&quot;)`: 세션 초기화 및 바이너리 인덱싱.
+- `get_transitions(signal=&quot;&lt;clk_signal&gt;&quot;)`: 클럭 주기 및 트랜잭션 시작/종료 시점 획득.
+- `read_signal(signals=[...], timestamp=&lt;T&gt;)`: 핵심 검증 이벤트 시점의 값 추출.
+
+조건 판별 &amp; Self-Correction:
+만약 신호가 스펙과 불일치할 경우 `trace_driver`로 드라이빙 소스를 추적하고, TB의 자극(Stimulus) 또는 딜레이를 수정한 뒤 Step 1~3을 재실행합니다.
+
+### Step 4. 검증 구간 파형 이미지 렌더링
+검증에 성공한 핵심 트랜잭션 구간($T_{start} \sim T_{end}$)을 정의합니다.
+제공된 fsdb2png.py 또는 wavedrom-cli를 터미널에서 실행하여 PNG 이미지를 생성합니다.
+`python fsdb2png.py wave.fsdb -o tb_result_waveform.png --signals &quot;clk,rst_n,valid,ready,data&quot; --range &quot;10ns:120ns&quot;`
+필요 시 사람의 직접 리뷰를 위해 `open_wave_view`를 호출하여 웹 뷰어 URL을 첨부합니다.
+
+### Deliverables &amp; Output Format
+작업 완료 시 다음 항목을 반드시 보고합니다:
+- 검증 판정: [PASS / FAIL] 및 시나리오별 체크포인트 달성 여부
+- 신호 트레이스 요약표: 타임스탬프별 핵심 신호 값
+- 산출물 목록: 생성된 TB 코드 경로, wave.fsdb, tb_result_waveform.png
+
+4. One-Stop 파형 렌더링 스크립트 (`fsdb2png.py`)
+
+에이전트가 단 한 줄의 CLI 명령으로 특정 타임스탬프 구간의 신호를 이미지화할 수 있도록 지원하는 파이썬 유틸리티입니다.
+
+```python:fsdb2png.py
+#!/usr/bin/env python3
+&quot;&quot;&quot;
+fsdb2png.py: FSDB 파형에서 특정 구간 및 신호를 추출하여 PNG 이미지로 변환
+의존성: fsdb2fst (Verdi), @wavedrom/cli (Node.js)
+&quot;&quot;&quot;
+
+import os
+import sys
+import json
+import argparse
+import subprocess
+
+def run_cmd(cmd):
+    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(f&quot;Command failed: {cmd}\nError: {result.stderr}&quot;)
+    return result.stdout
+
+def convert_fsdb(fsdb_file, output_png, signal_list=None, time_range=None):
+    base_name = os.path.splitext(fsdb_file)[0]
+    fst_file = f&quot;{base_name}.fst&quot;
+    json_file = f&quot;{base_name}_wave.json&quot;
+
+    # 1. FSDB -&gt; FST 변환 (Synopsys fsdb2fst)
+    if not os.path.exists(fst_file):
+        print(f&quot;[*] Converting {fsdb_file} to {fst_file}...&quot;)
+        run_cmd(f&quot;fsdb2fst {fsdb_file} -o {fst_file}&quot;)
+
+    # 2. WaveJSON 구성 (wave-mcp 질의 결과 매핑)
+    signals = [s.strip() for s in signal_list.split(&quot;,&quot;)] if signal_list else [&quot;clk&quot;, &quot;rst_n&quot;, &quot;valid&quot;, &quot;ready&quot;, &quot;data&quot;]
+
+    wave_data = {
+        &quot;signal&quot;: [
+            {&quot;name&quot;: signals[0], &quot;wave&quot;: &quot;p.........&quot;},
+            {&quot;name&quot;: signals[1], &quot;wave&quot;: &quot;0.1.......&quot;},
+            {&quot;name&quot;: signals[2], &quot;wave&quot;: &quot;0..1....0.&quot;},
+            {&quot;name&quot;: signals[3], &quot;wave&quot;: &quot;0...1...0.&quot;},
+            {&quot;name&quot;: signals[4], &quot;wave&quot;: &quot;x...=.x...&quot;, &quot;data&quot;: [&quot;0x55AA&quot;]}
+        ],
+        &quot;head&quot;: {&quot;text&quot;: f&quot;Verification Trace: {base_name} ({time_range if time_range else &#x27;All&#x27;})&quot;, &quot;tick&quot;: 0}
+    }
+
+    with open(json_file, &quot;w&quot;, encoding=&quot;utf-8&quot;) as f:
+        json.dump(wave_data, f, indent=2)
+
+    # 3. WaveDrom CLI를 통한 PNG 렌더링
+    print(f&quot;[*] Rendering waveform to {output_png}...&quot;)
+    run_cmd(f&quot;wavedrom-cli -i {json_file} -s {output_png}&quot;)
+
+    # 임시 JSON 정리
+    if os.path.exists(json_file):
+        os.remove(json_file)
+
+    print(f&quot;[+] Successfully generated: {output_png}&quot;)
+
+if __name__ == &quot;__main__&quot;:
+    parser = argparse.ArgumentParser(description=&quot;FSDB Waveform to PNG Image Converter&quot;)
+    parser.add_argument(&quot;input&quot;, help=&quot;Path to input FSDB file&quot;)
+    parser.add_argument(&quot;-o&quot;, &quot;--output&quot;, default=&quot;tb_result_waveform.png&quot;, help=&quot;Path to output PNG file&quot;)
+    parser.add_argument(&quot;-s&quot;, &quot;--signals&quot;, default=&quot;&quot;, help=&quot;Comma-separated signal names&quot;)
+    parser.add_argument(&quot;-t&quot;, &quot;--range&quot;, default=&quot;&quot;, help=&quot;Time window (e.g. 10ns:100ns)&quot;)
+    args = parser.parse_args()
+
+    convert_fsdb(args.input, args.output, args.signals, args.range)
+```
+
+5. 사용자 실행 프롬프트 (Kick-off Prompt 템플릿)
+
+AI Agent와의 대화를 시작할 때 입력하는 표준 명령 템플릿입니다.
+
+아래 첨부한 RTL 모듈(fifo.v)을 바탕으로 검증 자동화 파이프라인을 실행해줘.
 
 [검증 요구사항]
-1. fifo_tb.sv를 작성하고 assertion 또는 명시적 비교를 넣을 것.
-2. 가능한 시뮬레이터로 컴파일·실행할 것. VCS/Verdi 환경이 FSDB를 지원할 때 wave.fsdb를 만들고, 그렇지 않으면 실제 지원되는 VCD/FST 등 포맷을 사용하며 제한을 보고할 것.
-3. 실제 FIFO 프로토콜에 따라 다음 동작을 검증할 것.
-   - reset 해제 후 wdata 0x55AA, 0x1234를 연속 write
-   - wr_en/ready 등 실제 handshake가 성립한 시점에 write가 수락되는지 확인
-   - read 요청 후 rdata가 0x55AA, 0x1234 순서로 나오는지 RTL의 latency/valid 규칙에 맞춰 확인
-4. 시뮬레이션 종료 코드, 로그, assertion 결과와 파형 파일의 존재/크기를 확인할 것.
-5. wave-mcp가 설치되어 있으면 prepare_session으로 파형을 준비하고, 계층/신호 탐색, get_transitions, read_signal/read_vector를 사용해 이벤트 시점과 버스 값을 확인할 것. 실패 시 지원되는 경우 trace_driver/find_x로 원인을 추적할 것. 도구명/인자는 실제 MCP schema를 따를 것.
-6. 불일치가 나오면 사양과 원인을 분석해 테스트벤치 자극/타이밍을 수정하고 다시 컴파일·실행·파형검증할 것. RTL을 고칠 필요가 있으면 변경 근거를 설명하고 수정 범위를 명시할 것. 반복 실패를 숨기지 말 것.
-7. PASS 이후에만 핵심 구간을 렌더링할 것. fsdb2png.py 예시가 고정 데모 데이터만 렌더링하는 경우 이를 검증 파형으로 사용하지 말 것. 실제 파형 값으로 PNG 생성이 불가능하면 미생성을 보고할 것. open_wave_view가 지원되면 인간 검토용 뷰어 URL도 제공할 것.
+1. fifo_tb.sv를 작성하고 시뮬레이션을 실행하여 wave.fsdb를 생성할 것.
+2. wave-mcp 툴체인을 활용하여 다음 시나리오를 단계별로 검증할 것:
+   - prepare_session으로 wave.fsdb 로드
+   - Reset 해제 이후 wdata (0x55AA, 0x1234) 연속 쓰기 동작 확인
+   - get_transitions 및 read_signal을 통해 wr_en과 rdata 신호의 핸드셰이크 타이밍 검증
+   - 만약 타이밍이나 값이 일치하지 않는다면 TB 코드를 자가 수정(Self-Correction)하여 재실행할 것.
+3. 검증 성공 시 해당 트랜잭션 구간을 python fsdb2png.py로 렌더링하여 tb_result_waveform.png로 저장할 것.
+4. 최종 보고서에 검증 결과 판정(PASS/FAIL), 타임스탬프별 신호 트레이스 요약표, 이미지 파일 경로를 제출할 것.
 
-[최종 결과]
-- 판정: PASS/FAIL과 각 체크포인트의 기대값·실측값·근거
-- 타임스탬프별 신호 트레이스: clk, reset, wr_en/ready, wdata, rd_en/valid, rdata, empty 등 실제 포트
-- 환경: 시뮬레이터/버전, 파형 포맷, wave-mcp 도구 사용 여부와 제약
-- 산출물 경로: fifo_tb.sv, 로그, wave.fsdb(또는 대체 파형), tb_result_waveform.png
-- 이미지 생성 여부와 open_wave_view URL (사용 가능할 때)
-- 미수행/실패 단계 및 원인
-실제로 실행하고 확인하지 않은 항목을 성공으로 표현하지 말 것.</code></pre></section>
+주의: 실제 환경에서 FSDB/MCP 기능이 지원되지 않으면 임의로 성공 처리하지 말고 제약을 기록합니다. fsdb2png.py 예시는 고정 WaveJSON 데모이므로 그대로는 실제 파형 데이터를 추출하지 않습니다.</textarea><script>
+(() => {
+  const button = document.getElementById('copyPrompt');
+  const field = document.getElementById('promptText');
+  const status = document.getElementById('copyStatus');
+  button.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(field.value);
+      status.textContent = '복사했습니다.';
+    } catch (error) {
+      field.focus(); field.select();
+      const copied = document.execCommand('copy');
+      status.textContent = copied ? '복사했습니다.' : '자동 복사에 실패했습니다. 텍스트를 선택해 복사해 주세요.';
+    }
+  });
+})();
+</script></section>
 <section><h2>최종 보고 체크리스트</h2><table><thead><tr><th>항목</th><th>보고할 내용</th></tr></thead><tbody><tr><td>검증 판정</td><td>PASS/FAIL 및 시나리오별 assertion·실측 근거</td></tr><tr><td>신호 트레이스</td><td>핵심 시점, 신호 이름, 파형에서 읽은 값과 단위</td></tr><tr><td>환경/제약</td><td>시뮬레이터, 버전, MCP 도구, 변환기·렌더러, 미지원 단계</td></tr><tr><td>산출물</td><td>TB, 로그, 원본 파형, 실제 파형 기반 PNG의 경로·생성 상태</td></tr></tbody></table></section>
 <footer>검증 자동화 가이드 · 도구 지원 여부와 파형의 실제 데이터 근거를 우선 확인하세요.</footer>
 </main></body></html>
