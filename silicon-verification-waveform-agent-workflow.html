@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Silicon Verification &amp; Waveform Agent Workflow</title>
+<style>
+:root{color-scheme:light;--bg:#f3f6f8;--paper:#fff;--ink:#172331;--muted:#5c6d7e;--line:#d8e1e8;--accent:#147d8d;--dark:#102a36;--code:#101b27;--soft:#e7f3f4}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 system-ui,-apple-system,"Segoe UI",sans-serif}header{background:var(--dark);color:#f6fbfd;padding:54px 22px 42px;border-bottom:6px solid var(--accent)}.wrap{width:min(980px,calc(100% - 36px));margin:auto}header p{color:#c6d8e0;max-width:760px}main{padding:30px 0 60px}section,.callout{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:24px;margin:0 0 18px}h1{font-size:clamp(32px,5vw,48px);line-height:1.15;margin:0}h2{font-size:25px;margin:0 0 12px}h3{font-size:18px;margin:20px 0 8px}a{color:var(--accent)}.label{display:inline-block;background:var(--soft);color:#125662;border-radius:999px;padding:3px 10px;font-weight:700;font-size:13px;margin-bottom:12px}.steps{counter-reset:s;list-style:none;padding:0}.steps li{counter-increment:s;margin:12px 0;padding-left:42px;position:relative}.steps li:before{content:counter(s);position:absolute;left:0;top:1px;background:var(--soft);color:#125662;border-radius:50%;width:28px;height:28px;text-align:center;font-weight:800}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--code);color:#e5edf5;padding:18px;border-radius:9px;overflow:auto;font:13px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace}.callout{border-left:5px solid #d08b22;background:#fffaf0}.callout strong{color:#744b00}.pill{font-family:ui-monospace,monospace;background:#eef2f5;padding:2px 6px;border-radius:4px}table{width:100%;border-collapse:collapse}th,td{text-align:left;border-bottom:1px solid var(--line);padding:10px;vertical-align:top}th{color:var(--muted)}footer{color:var(--muted);font-size:13px;padding:16px 0 36px}@media(max-width:650px){section,.callout{padding:18px}table{font-size:14px}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><span class="label">RTL 검증 · FSDB · 파형 시각화</span><h1>Silicon Verification &amp;<br>Waveform Agent Workflow</h1><p>Claude Code, Cursor 등 코딩 에이전트가 RTL 테스트벤치 작성부터 시뮬레이션, FSDB 기반 파형 질의, 검증 결과 이미지 생성까지 수행하도록 하는 실행 가이드와 복사용 프롬프트입니다.</p></div></header>
+<main class="wrap">
+<section><h2>목표와 실행 환경</h2><p>에이전트는 RTL 사양을 분석하고 테스트벤치와 검증 시나리오를 작성한 뒤, 사용 가능한 시뮬레이터로 실행합니다. 생성된 파형을 <span class="pill">wave-mcp</span> 등 실제 파형 분석 도구로 확인하고 핵심 구간을 이미지로 내보냅니다.</p><ul><li><b>시뮬레이터:</b> VCS, Xcelium, Verilator, Icarus Verilog 중 설치·라이선스·기능이 확인된 도구</li><li><b>파형 분석:</b> 사용 가능한 wave-mcp MCP 서버 및 파형 포맷 지원 도구</li><li><b>변환/렌더링:</b> 설치된 fsdb2fst, fsdb2vcd, GTKWave 또는 프로젝트 내 검증된 렌더러</li></ul></section>
+<div class="callout"><strong>중요한 구현 주의</strong><p>FSDB 덤프 시스템 태스크(<span class="pill">$fsdbDumpfile</span>, <span class="pill">$fsdbDumpvars</span>)는 보통 Synopsys VCS/Verdi 환경에 의존합니다. Icarus/Verilator 등에서 같은 방식으로 동작한다고 가정하지 말고, 도구별 덤프 포맷·컴파일 옵션을 확인하세요. 또한 아래에 전달된 <span class="pill">fsdb2png.py</span> 예시는 임의의 샘플 WaveJSON을 만드는 데모일 뿐 실제 FSDB 신호를 읽지 않습니다. 진짜 파형 검증·PNG라고 보고하지 말고, 파형 데이터 추출과 렌더링을 실제 구현·검증해야 합니다.</p></div>
+<section><h2>표준 검증 절차</h2><ol class="steps"><li><b>테스트벤치 작성:</b> 사양, reset, 코너 케이스와 프로토콜 타이밍을 확인해 <span class="pill">tb_&lt;module&gt;.sv</span>를 작성합니다. 시뮬레이터 호환성에 맞는 덤프 설정을 포함합니다.</li><li><b>컴파일 및 실행:</b> 실제 환경에 맞는 명령으로 컴파일·실행하고 로그와 종료 코드를 확인합니다. 생성된 파형 파일이 존재하고 0바이트가 아닌지 확인합니다.</li><li><b>표적형 파형 검증:</b> wave-mcp 세션을 준비하고 주요 신호 천이를 찾은 다음 이벤트 전후 신호값을 질의합니다. 원문 시뮬레이션 로그와 assertion 결과도 함께 확인합니다.</li><li><b>오류 수정:</b> 기대값과 불일치하면 설계/테스트 조건을 구분해 원인을 찾고 TB 또는 설정을 수정한 뒤 재실행합니다. PASS는 체크포인트가 실제 관측값으로 확인된 경우에만 선언합니다.</li><li><b>이미지 렌더링:</b> 확인된 신호와 시간 구간을 지정해 실제 파형 데이터에서 PNG를 생성합니다. PNG의 신호·시간축이 검증 구간과 일치하는지 확인합니다.</li><li><b>결과 보고:</b> PASS/FAIL, 시나리오별 근거, 핵심 타임스탬프·신호값, 실행 환경과 생성 산출물을 보고합니다. 불가능하거나 지원되지 않은 단계는 명확히 표시합니다.</li></ol></section>
+<section><h2>FSDB 덤프 예시</h2><p>VCS/Verdi처럼 FSDB 시스템 태스크를 지원하는 환경에서 사용할 수 있는 예시입니다. 최상위 테스트벤치 이름과 계층은 실제 프로젝트에 맞게 바꾸세요.</p><pre><code>initial begin
+  $fsdbDumpfile("wave.fsdb");
+  $fsdbDumpvars(0, tb_&lt;module&gt;, "+all");
+end</code></pre><p>시뮬레이터가 FSDB 태스크를 지원하지 않으면 해당 도구가 지원하는 파형 포맷과 덤프 방식을 사용하고, 포맷 변환 가능 여부를 사전에 확인합니다.</p></section>
+<section><h2>wave-mcp 질의 계획</h2><ol><li><b>prepare_session:</b> 생성된 파형 파일을 로드하고 변환·계층 인식 상태를 확인합니다.</li><li><b>get_transitions:</b> 클럭, reset, valid/ready/enable 등 제어 신호의 이벤트 시점을 찾습니다.</li><li><b>read_signal:</b> 각 핵심 이벤트 주변의 데이터 버스, 상태 레지스터, empty/full 플래그 값을 읽습니다.</li></ol><p>도구 이름·인자·지원 포맷은 설치된 wave-mcp 서버의 실제 문서 및 스키마를 확인하세요. 도구가 없거나 파일 형식이 지원되지 않으면 그 사실을 보고하고 대체 경로를 사용합니다.</p></section>
+<section><h2>파형 렌더링 스크립트 주의점</h2><p>제공된 초안은 FSDB를 FST로 변환하는 명령을 실행하지만, WaveJSON에는 실제 파형에서 읽은 값 대신 고정된 데모 신호를 넣습니다. 따라서 그 초안만으로 생성한 PNG는 검증 파형이 아닙니다. 프로젝트에 추가하기 전 다음을 구현·검증하세요.</p><ul><li>실제 파형 파서/파형 MCP 결과에서 지정 신호와 시간 구간의 값을 추출</li><li>지원하지 않는 신호·시간 포맷·누락된 변환기에서 명확히 실패</li><li>명령은 shell 문자열 조합 대신 인자 배열로 실행하고 입력 경로를 안전하게 처리</li><li>WaveJSON 생성 후 렌더러 종료 코드와 출력 PNG 파일을 확인</li><li>이미 존재하는 변환 산출물이 오래된 결과인지 확인하거나 재생성 옵션 제공</li></ul><p><span class="pill">fsdb2png.py</span>는 실환경에서 파형 기반 구현과 테스트가 끝난 뒤에만 PASS 산출물로 사용하세요.</p></section>
+<section><h2>복사해서 바로 쓰는 사용자 프롬프트</h2><p>아래 블록을 복사한 뒤, 실제 RTL 파일과 요구 사양을 함께 제공하세요.</p><pre><code>아래 RTL 코드와 프로젝트 환경을 바탕으로 자동 검증 파이프라인을 실행해줘.
+
+[입력]
+- RTL 파일: fifo.v (첨부 또는 프로젝트 경로)
+- 관련 사양/인터페이스: 프로젝트 문서와 RTL을 먼저 확인하고 불확실한 부분은 명시할 것
+- 시뮬레이터 및 버전: 설치 상태를 확인해 선택할 것
+
+[요구사항]
+1. RTL의 포트, 클럭/리셋 극성, FIFO 깊이와 동작 지연을 확인한 뒤 fifo_tb.sv를 작성할 것.
+2. 사용 가능한 시뮬레이터로 컴파일·실행하고, 해당 환경이 지원하는 방식으로 파형을 생성할 것. VCS/Verdi에서 FSDB를 지원하면 wave.fsdb를 생성할 것. 지원되지 않으면 실제 지원 포맷과 제한을 보고할 것.
+3. 아래 시나리오를 검증할 것.
+   - Reset 해제 후 데이터 0xA1, 0xB2를 연속 Write
+   - Write 완료 후 FIFO Empty 신호가 Low로 내려가는지 확인
+   - Read 요청 후 출력 데이터가 순서대로 0xA1, 0xB2인지 확인
+   - FIFO 인터페이스의 실제 handshake와 출력 타이밍을 RTL 사양에 맞춰 샘플링
+4. 테스트벤치에 assertion 또는 명시적 비교를 넣고, 실패 시 종료 코드를 실패로 반환할 것.
+5. 생성한 파형을 실제 wave-mcp 도구로 열 수 있는지 확인할 것. prepare_session으로 로드하고 get_transitions로 주요 이벤트를 찾은 다음 read_signal로 이벤트 전후 값을 확인할 것. 도구가 없거나 실패하면 추측하지 말고 실패 사유를 기록할 것.
+6. 검증에 성공한 핵심 구간을 정해 실제 파형 데이터로 tb_result_waveform.png를 렌더링할 것. 샘플/고정값을 넣은 데모 이미지로 대체하지 말 것. 렌더링 도구가 없으면 이미지 미생성을 명시할 것.
+7. 코드/로그/파형을 근거로 결과를 보고할 것. 실행하지 않은 단계나 확인하지 못한 값을 성공으로 표현하지 말 것.
+
+[최종 보고 형식]
+- 판정: PASS 또는 FAIL (근거와 미수행 단계 포함)
+- 환경: 시뮬레이터/버전, 파형 도구 및 사용한 변환·렌더링 방법
+- 체크포인트: reset, empty, write/read 데이터 순서별 기대값·실측값·판정
+- 신호 트레이스: 핵심 타임스탬프와 clk/reset/valid/ready/data/empty 값
+- 산출물: 테스트벤치, 로그, 파형 파일, PNG의 경로와 파일 생성 여부</code></pre></section>
+<section><h2>최종 보고 체크리스트</h2><table><thead><tr><th>항목</th><th>보고할 내용</th></tr></thead><tbody><tr><td>검증 판정</td><td>PASS/FAIL 및 시나리오별 assertion·실측 근거</td></tr><tr><td>신호 트레이스</td><td>핵심 시점, 신호 이름, 파형에서 읽은 값과 단위</td></tr><tr><td>환경/제약</td><td>시뮬레이터, 버전, MCP 도구, 변환기·렌더러, 미지원 단계</td></tr><tr><td>산출물</td><td>TB, 로그, 원본 파형, 실제 파형 기반 PNG의 경로·생성 상태</td></tr></tbody></table></section>
+<footer>검증 자동화 가이드 · 도구 지원 여부와 파형의 실제 데이터 근거를 우선 확인하세요.</footer>
+</main></body></html>
