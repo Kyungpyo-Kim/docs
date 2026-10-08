@@ -18,7 +18,75 @@
   $fsdbDumpvars(0, tb_&lt;module&gt;, "+all");
 end</code></pre><p>시뮬레이터가 FSDB 태스크를 지원하지 않으면 해당 도구가 지원하는 파형 포맷과 덤프 방식을 사용하고, 포맷 변환 가능 여부를 사전에 확인합니다.</p></section>
 <section><h2>wave-mcp 질의 계획</h2><ol><li><b>prepare_session:</b> 생성된 파형 파일을 로드하고 변환·계층 인식 상태를 확인합니다.</li><li><b>get_transitions:</b> 클럭, reset, valid/ready/enable 등 제어 신호의 이벤트 시점을 찾습니다.</li><li><b>read_signal:</b> 각 핵심 이벤트 주변의 데이터 버스, 상태 레지스터, empty/full 플래그 값을 읽습니다.</li></ol><p>도구 이름·인자·지원 포맷은 설치된 wave-mcp 서버의 실제 문서 및 스키마를 확인하세요. 도구가 없거나 파일 형식이 지원되지 않으면 그 사실을 보고하고 대체 경로를 사용합니다.</p></section>
-<section><h2>파형 렌더링 스크립트 주의점</h2><p>제공된 초안은 FSDB를 FST로 변환하는 명령을 실행하지만, WaveJSON에는 실제 파형에서 읽은 값 대신 고정된 데모 신호를 넣습니다. 따라서 그 초안만으로 생성한 PNG는 검증 파형이 아닙니다. 프로젝트에 추가하기 전 다음을 구현·검증하세요.</p><ul><li>실제 파형 파서/파형 MCP 결과에서 지정 신호와 시간 구간의 값을 추출</li><li>지원하지 않는 신호·시간 포맷·누락된 변환기에서 명확히 실패</li><li>명령은 shell 문자열 조합 대신 인자 배열로 실행하고 입력 경로를 안전하게 처리</li><li>WaveJSON 생성 후 렌더러 종료 코드와 출력 PNG 파일을 확인</li><li>이미 존재하는 변환 산출물이 오래된 결과인지 확인하거나 재생성 옵션 제공</li></ul><p><span class="pill">fsdb2png.py</span>는 실환경에서 파형 기반 구현과 테스트가 끝난 뒤에만 PASS 산출물로 사용하세요.</p></section>
+<section><h2>파형 렌더링 스크립트 주의점</h2><p>요청에 포함된 <span class="pill">fsdb2png.py</span> 예시 코드는 아래와 같습니다. 복사해 활용할 수 있도록 문서에 실었습니다. 단, 이 구현은 변환을 시도한 뒤 <b>고정된 샘플 WaveJSON</b>을 렌더링하므로, 실제 FSDB 신호를 읽거나 검증 결과를 시각화하지는 않습니다.</p><details><summary><b>fsdb2png.py 예시 코드 펼치기</b></summary><pre><code>#!/usr/bin/env python3
+"""fsdb2png.py — 데모용 FSDB→WaveDrom PNG 예시.
+주의: 아래 WaveJSON은 실제 FSDB에서 추출한 데이터가 아닌 고정 샘플입니다.
+의존성: fsdb2fst, wavedrom-cli
+"""
+import argparse
+import json
+import shutil
+import subprocess
+from pathlib import Path
+
+
+def run_cmd(args):
+    result = subprocess.run(args, capture_output=True, text=True, check=False)
+    if result.returncode:
+        raise RuntimeError(
+            f"Command failed ({result.returncode}): {args!r}\\n{result.stderr}"
+        )
+    return result.stdout
+
+
+def convert_fsdb(fsdb_file, output_png, signal_list=None, time_range=None):
+    source = Path(fsdb_file)
+    if not source.is_file():
+        raise FileNotFoundError(source)
+    fst_file = source.with_suffix(".fst")
+    json_file = source.with_name(source.stem + "_wave.json")
+
+    if not fst_file.exists():
+        if not shutil.which("fsdb2fst"):
+            raise RuntimeError("fsdb2fst not found; install/configure Verdi tools")
+        run_cmd(["fsdb2fst", str(source), "-o", str(fst_file)])
+
+    # DEMO ONLY: replace this fixed sample with values extracted from the
+    # actual waveform (e.g. through wave-mcp or a real FST/VCD parser).
+    names = [s.strip() for s in signal_list.split(",") if s.strip()] if signal_list else [
+        "clk", "rst_n", "valid", "ready", "data"
+    ]
+    sample = [
+        {"name": "clk", "wave": "p........."},
+        {"name": "rst_n", "wave": "0.1......."},
+        {"name": "valid", "wave": "0..1....0."},
+        {"name": "ready", "wave": "0...1...0."},
+        {"name": "data", "wave": "x...=.x...", "data": ["0x55AA"]},
+    ]
+    wave_data = {
+        "signal": sample,
+        "head": {"text": f"DEMO ONLY: {source.stem} ({time_range or 'All'})", "tick": 0},
+    }
+    if len(names) != 5:
+        raise ValueError("This demo WaveJSON is fixed to five example signals")
+    json_file.write_text(json.dumps(wave_data, indent=2), encoding="utf-8")
+    if not shutil.which("wavedrom-cli"):
+        raise RuntimeError("wavedrom-cli not found")
+    run_cmd(["wavedrom-cli", "-i", str(json_file), "-s", str(output_png)])
+    if not Path(output_png).is_file() or Path(output_png).stat().st_size == 0:
+        raise RuntimeError(f"Renderer did not create a non-empty PNG: {output_png}")
+    json_file.unlink(missing_ok=True)
+    print(f"[+] Demo image generated (NOT actual waveform data): {output_png}")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Demo FSDB to WaveDrom PNG")
+    parser.add_argument("input", help="Path to input FSDB file")
+    parser.add_argument("-o", "--output", default="tb_result_waveform.png")
+    parser.add_argument("-s", "--signals", default="")
+    parser.add_argument("-t", "--range", dest="time_range", default="")
+    args = parser.parse_args()
+    convert_fsdb(args.input, args.output, args.signals, args.time_range)</code></pre></details><p>이 초안은 FSDB→FST 변환이 가능한지 확인하고 WaveDrom CLI 실행을 보여주는 예시용입니다. 실제 파형 PNG가 필요하면 샘플 블록을 wave-mcp/FST/VCD 파서에서 얻은 실제 신호·시간 데이터로 교체하고 검증해야 합니다. 아래 항목도 실환경 적용 전에 구현·확인하세요.</p><ul><li>실제 파형 파서/파형 MCP 결과에서 지정 신호와 시간 구간의 값을 추출</li><li>지원하지 않는 신호·시간 포맷·누락된 변환기에서 명확히 실패</li><li>명령은 shell 문자열 조합 대신 인자 배열로 실행하고 입력 경로를 안전하게 처리</li><li>WaveJSON 생성 후 렌더러 종료 코드와 출력 PNG 파일을 확인</li><li>이미 존재하는 변환 산출물이 오래된 결과인지 확인하거나 재생성 옵션 제공</li></ul><p><span class="pill">fsdb2png.py</span>는 실환경에서 파형 기반 구현과 테스트가 끝난 뒤에만 PASS 산출물로 사용하세요.</p></section>
 <section><h2>복사해서 바로 쓰는 사용자 프롬프트</h2><p>아래 블록을 복사한 뒤, 실제 RTL 파일과 요구 사양을 함께 제공하세요.</p><pre><code>아래 RTL 코드와 프로젝트 환경을 바탕으로 자동 검증 파이프라인을 실행해줘.
 
 [입력]
