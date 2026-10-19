@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Harness² 쉬운 설명 — 모델은 두고 '일하는 틀'만 고치는 에이전트</title>
+  <meta name="description" content="구글 리서치 Harness²(하네스 제곱)를 처음 보는 사람을 위해, 원문의 그림과 표를 곁들여 쉬운 한국어로 정리한 설명 페이지입니다.">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f6f8;
+      --paper: #ffffff;
+      --ink: #17202a;
+      --muted: #5b6b7f;
+      --line: #d8e0e8;
+      --accent: #1f7a8c;
+      --accent-dark: #16515d;
+      --soft: #e8f2f4;
+      --warm: #f4efe6;
+      --warm-line: #e3d7c3;
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.75;
+    }
+    a { color: var(--accent-dark); }
+    a:hover { text-decoration: underline; }
+    a:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+    .skip {
+      position: absolute; left: -9999px; top: 0;
+      background: var(--accent-dark); color: #fff;
+      padding: 10px 14px; border-radius: 0 0 8px 0; z-index: 10;
+    }
+    .skip:focus { left: 0; }
+    header.top {
+      background: #10212c;
+      color: #f7fbff;
+      border-bottom: 6px solid var(--accent);
+      padding: 40px 20px 30px;
+    }
+    .wrap { width: min(920px, calc(100% - 32px)); margin: 0 auto; }
+    .eyebrow {
+      margin: 0 0 10px; color: #9ed8e1; font-size: 13px;
+      font-weight: 750; text-transform: uppercase; letter-spacing: .02em;
+    }
+    h1 { margin: 0; font-size: clamp(28px, 5.2vw, 44px); line-height: 1.12; }
+    .lead { max-width: 720px; margin: 16px 0 0; color: #c8d7e3; font-size: 17px; }
+    .byline { margin: 14px 0 0; color: #9fb3c4; font-size: 14px; }
+    main { padding: 26px 0 40px; }
+    section { margin: 0 0 30px; }
+    h2 { margin: 40px 0 12px; font-size: 24px; line-height: 1.3; }
+    h3 { margin: 26px 0 8px; font-size: 19px; }
+    p { margin: 10px 0; }
+    ul, ol { padding-left: 22px; }
+    li { margin: 6px 0; }
+    .summary, .toc, .note {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 20px 22px;
+    }
+    .summary { border-left: 6px solid var(--accent); font-size: 17px; }
+    .toc h2 { margin-top: 0; font-size: 19px; }
+    .toc ol { columns: 2; column-gap: 28px; margin: 0; }
+    @media (max-width: 640px) { .toc ol { columns: 1; } }
+    .note { background: var(--warm); border-color: var(--warm-line); }
+    .note strong { color: #7a4b12; }
+    code, .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: .92em;
+      background: var(--soft);
+      padding: 1px 5px;
+      border-radius: 4px;
+      overflow-wrap: anywhere;
+    }
+    p, li, figcaption, td, th { overflow-wrap: break-word; }
+    pre {
+      background: #0f1b24; color: #e7f1f6;
+      border-radius: 10px; padding: 16px 18px; overflow-x: auto;
+      font-size: 14px; line-height: 1.6;
+    }
+    pre code { background: none; padding: 0; color: inherit; }
+    figure {
+      margin: 22px 0;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    figure img {
+      display: block; width: 100%; height: auto;
+      border: 1px solid var(--line); border-radius: 8px; background: #fff;
+    }
+    figure.brand { max-width: 360px; }
+    figure.brand img { border: none; }
+    figcaption { margin-top: 12px; color: #354456; font-size: 14.5px; }
+    figcaption .cap-title { display: block; color: var(--ink); font-weight: 750; margin-bottom: 4px; }
+    .cap-src { color: var(--muted); font-size: 13px; display: block; margin-top: 6px; }
+    .fullview {
+      display: inline-block; margin-top: 10px; padding: 7px 12px;
+      border: 1px solid var(--accent); border-radius: 8px;
+      background: var(--soft); color: var(--accent-dark);
+      font-size: 13.5px; font-weight: 750; text-decoration: none;
+    }
+    .fullview:hover { background: #d9ecef; text-decoration: none; }
+    .fig-hint { margin: 10px 0 0; color: var(--muted); font-size: 13.5px; }
+    .table-wrap { overflow-x: auto; margin: 16px 0; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+    table { width: 100%; border-collapse: collapse; font-size: 14.5px; min-width: 520px; }
+    caption { caption-side: top; text-align: left; padding: 12px 14px 6px; color: var(--ink); font-weight: 750; }
+    th, td { padding: 10px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+    thead th { background: var(--soft); color: var(--accent-dark); }
+    tbody tr:last-child td { border-bottom: 0; }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .delta { color: var(--accent-dark); font-weight: 750; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+    .card h3 { margin-top: 0; }
+    .k { color: var(--accent-dark); font-weight: 750; }
+    .term { margin: 6px 0; }
+    .term b { color: var(--ink); }
+    footer {
+      margin-top: 30px; padding: 22px 0 46px;
+      border-top: 1px solid var(--line); color: var(--muted); font-size: 13.5px;
+    }
+    footer h2 { font-size: 17px; margin: 22px 0 6px; }
+    footer .wrap, .attribution { color: var(--muted); }
+    .attribution { padding: 18px 0 0; }
+    @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">본문으로 건너뛰기</a>
+
+  <header class="top">
+    <div class="wrap">
+      <p class="eyebrow">ELI5 · AI 에이전트 하네스</p>
+      <h1>하네스²(Harness²) 처음 보는 사람을 위한 설명</h1>
+      <p class="lead">모델의 가중치는 그대로 두고, 모델을 둘러싼 '일하는 틀(하네스)'만 스스로 고쳐 성과를 끌어올리는 구글 리서치의 오픈소스 프레임워크를 처음 보는 사람 눈높이로 정리했습니다.</p>
+      <p class="byline">원문 확인: 2026-10-19 (KST) · 원본 저장소 HEAD <code>1cfe254</code> · 논문 arXiv:2610.14224 (2026-10-09)</p>
+    </div>
+  </header>
+
+  <main id="main" class="wrap">
+    <figure class="brand">
+      <img src="assets/harness2-eli5/Harness2-wordmark.png" width="2172" height="724"
+           alt="Harness² 워드마크. 부제는 'Recursive Agent Harnessing for an Open World'.">
+      <figcaption>
+        <span class="cap-title">Harness² (하네스 제곱)</span>
+        <span class="cap-src">이미지 출처: google-research/harness2 <code>assets/Harness2-wordmark.png</code> (Apache-2.0). 이 페이지용으로 <code>docs/assets/harness2-eli5/</code>에 보존했습니다.</span>
+      </figcaption>
+    </figure>
+
+    <section class="summary" aria-labelledby="sum-h">
+      <h2 id="sum-h" style="margin-top:0;font-size:19px;">한 줄 요약</h2>
+      <p>Harness²(하네스 제곱)는 구글 리서치(google-research)가 공개한 오픈소스 프레임워크다. 이 프레임워크가 하는 일은, AI 모델의 가중치는 그대로 둔 채 모델을 둘러싼 '일하는 틀'만 스스로 고쳐 에이전트의 성과를 끌어올리는 것이다. 사람에 비유하면 이렇다. 신입 사원의 머리(재능)는 손대지 않는다. 대신 책상 위의 체크리스트와 매뉴얼, 쓰는 도구를 계속 바꿔 준다.</p>
+      <p class="fig-hint">그림은 페이지 폭에 맞춰 줄여 보여 줍니다. 그림 속 글씨와 표의 세부 값은 각 그림·표 아래의 <strong>‘원본 크기로 보기’</strong> 링크로 확대해 확인할 수 있습니다.</p>
+    </section>
+
+    <nav class="toc" aria-labelledby="toc-h">
+      <h2 id="toc-h">목차</h2>
+      <ol>
+        <li><a href="#s1">'하네스'가 대체 뭔가</a></li>
+        <li><a href="#s2">왜 필요한가 — 기존 방식과 차이</a></li>
+        <li><a href="#s3">일상 비유: 신입 사원과 업무 데스크</a></li>
+        <li><a href="#s4">핵심 작동 3단계 (Propose–Probe–Compose)</a></li>
+        <li><a href="#s5">눈에 그려지는 예제</a></li>
+        <li><a href="#s6">두 단계 재귀</a></li>
+        <li><a href="#s7">병렬과 순차 (그림)</a></li>
+        <li><a href="#s8">여덟 부품 c1~c8 (그림)</a></li>
+        <li><a href="#s9">어디에 쓰나 + 보고된 결과 (표)</a></li>
+        <li><a href="#s10">무엇을 못 하나 — 한계</a></li>
+        <li><a href="#s11">설치와 체험 (GIF)</a></li>
+        <li><a href="#s12">핵심 용어 한 줄 풀이</a></li>
+      </ol>
+    </nav>
+
+    <section id="s1" aria-labelledby="s1h">
+      <h2 id="s1h">1. '하네스(harness)'가 대체 뭔가</h2>
+      <p>모델은 혼자 일하지 않는다. 시스템 프롬프트는 무엇을 하라고 알려 주고 도구 목록은 쓸 수 있는 도구를 정한다. 메모는 기억해 둘 내용을 담는다. 여기에 필요할 때 불러 쓰는 스킬(skill), 일을 나눠 맡기는 서브에이전트(subagent), 미리 만들어 둔 스크립트, 도구 사용을 강제하는 플러그인이 더해진다. 이렇게 모델을 감싸는 장치를 모두 통틀어 '하네스'라고 부른다. README는 하네스를 "모델이 에이전트로 행동하도록 해 주는, 모델 주변의 시스템"이라고 정의한다.</p>
+      <p>'하네싱(harnessing)'은 이 장치들을 최적화하는 일을 가리킨다. 모델을 다시 학습시키는 것과는 다르다. Harness²는 모델 가중치를 고정해 둔 채 오직 하네스만 바꾼다.</p>
+    </section>
+
+    <section id="s2" aria-labelledby="s2h">
+      <h2 id="s2h">2. 왜 필요한가 — 기존 방식과 무엇이 다른가</h2>
+      <p>성능을 올리는 길은 보통 두 갈래다. 하나는 모델 자체를 더 좋게 만드는 것이다(더 큰 모델, 파인튜닝, 강화학습). 다른 하나는 사람이 프롬프트를 손으로 잘 다듬는 것이다. Harness²는 세 번째 갈래를 택한다. 모델은 그대로 두되 모델 주변의 시스템을 실행 결과에 비추어 반복해서 고친다.</p>
+      <p>차이는 두 가지다.</p>
+      <p>첫째, 정답(채점표) 없이 개선한다. Harness²는 개선 담당자에게 채점 기준(rubric)을 주지 않는다. 대신 같은 과제를 여러 하네스로 실행해 보고 그 실행들 사이의 '행동 차이'를 근거로 삼는다. 논문 표현으로는 정답 피드백 없는 대비(contrastive) 방식이다.</p>
+      <p>둘째, 두 단계의 재귀를 이어 붙인다. 하나는 과제 수준 재귀다. 지금 이 과제 하나를 더 잘 풀도록 하네스를 고친다. 다른 하나는 하네스 구축 수준 재귀다. 과제가 끝날 때마다 채택된 하네스와 근거 있는 교훈을 분야별 라이브러리에 쌓아 둔다. 다음 과제를 개선할 때는 그 라이브러리를 꺼내 쓴다. Harness²는 이 둘을 하나로 연결한다.</p>
+    </section>
+
+    <section id="s3" aria-labelledby="s3h">
+      <h2 id="s3h">3. 일상 비유 하나 — 신입 사원과 업무 데스크</h2>
+      <p>회사에 신입 사원이 왔다. 이 사원의 재능은 우리가 바꿀 수 없다. 그런데 우리가 바꿀 수 있는 것은 많다. 책상 위에 어떤 체크리스트를 붙여 줄지, 어떤 순서로 일하라고 알려 줄지, 어떤 공구(스크립트)를 쥐여 줄지, 막힐 때 누구에게 물어보라고 알려 줄지.</p>
+      <p>Harness²가 하는 일이 정확히 이것이다. 사원(모델)은 그대로 두고 데스크 위의 것들(하네스)을 바꾼다. 바꾼 데스크로 일을 다시 시켜 보고 잘된 것만 남긴다. 이런 '다시 시켜 보기'가 없으면 바꾼 게 정말 나은지 알 수 없다. 그래서 Harness²는 반드시 실행을 거쳐 판단한다.</p>
+    </section>
+
+    <section id="s4" aria-labelledby="s4h">
+      <h2 id="s4h">4. 핵심 작동 3단계 — 제안・시험・종합</h2>
+      <p>Harness²의 심장은 Propose–Probe–Compose 세 단계다.</p>
+      <p><span class="k">1단계, 제안(Propose).</span> 개선 담당자(improver)가 지금 하네스 파일을 읽고 "이렇게 바꾸면 나아질 것 같다"는 수정안을 낸다. 수정안에는 두 종류가 있다. 어디에나 통하는 일반 수정(invariant, 코드에서 INV)과 이 업무 영역에만 맞는 수정(domain-specific, DOM)이다.</p>
+      <p><span class="k">2단계, 시험(Probe).</span> 수정안을 실제로 적용해 같은 과제를 다시 실행해 본다. 정답은 여기서도 주지 않는다. 대신 각 실행의 행동 기록과 산출물이 남는다.</p>
+      <p><span class="k">3단계, 종합(Compose).</span> 시험 실행들의 차이를 근거로 최종 하네스를 만든다. 여러 후보를 하나로 합쳐 개선된 하네스를 완성하는 셈이다.</p>
+      <p>정리하면 "고쳐 본다 → 돌려 본다 → 근거를 보고 합친다"이다. 이 세 단계를 한 묶음(round)으로 부른다.</p>
+
+      <figure>
+        <img src="assets/harness2-eli5/harness2_pipeline.png" width="2432" height="785"
+             alt="Harness² 파이프라인 도해. 위쪽 흐름은 과제 수준 재귀로, 실행기가 초기 하네스를 실행하고, 하네스 편집자가 일반(불변) 수정과 영역별 수정을 제안하며, 후보 하네스들이 시험 실행되고, 컴포저가 실행 근거를 모아 다음 하네스로 종합한다. 아래쪽 흐름은 하네스 구축 수준 재귀로, 과제가 끝나면 경험 반영기(reflector)가 개선 하네스를 갱신한다.">
+        <figcaption>
+          <span class="cap-title">그림 1. Harness² 파이프라인</span>
+          <strong>읽는 법:</strong> 위쪽 줄이 한 과제 안에서 도는 과제 수준 재귀다. 실행기(executor)가 초기 하네스를 한 번 돌리고 → 하네스 편집자(editor)가 일반 수정(invariant)·영역 수정(domain) 후보를 제안하고 → 후보들을 같은 조건에서 실행(probe)해 행동 차이를 모으고 → 컴포저(composer)가 그 근거로 다음 하네스를 합성한다. 아래쪽 줄이 하네스 구축 수준 재귀다. 과제가 끝나면 경험 반영기가 채택된 하네스와 교훈을 개선 하네스에 반영해 다음 과제에 넘긴다.
+          <span class="cap-src">출처: google-research/harness2 <code>assets/harness2_pipeline.png</code> (Apache-2.0) · 논문 Figure 3에 대응 · <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/assets/harness2_pipeline.png" target="_blank" rel="noopener">원본 파일 permalink</a></span>
+          <a class="fullview" href="assets/harness2-eli5/harness2_pipeline.png" target="_blank" rel="noopener">원본 크기로 보기 (2432×785)</a>
+        </figcaption>
+      </figure>
+    </section>
+
+    <section id="s5" aria-labelledby="s5h">
+      <h2 id="s5h">5. 눈에 그려지는 예제</h2>
+      <p>과제가 이렇다고 하자. "회계 장부를 읽고 합계가 맞는지 확인한 뒤 짧은 보고서를 써라."</p>
+      <p>처음 하네스(기본 하네스)로 실행하면, 에이전트가 숫자를 머릿속으로 더하다가 한 줄을 빼먹어 합계가 어긋난다. 채점표를 주지 않았으니 "틀렸다"는 정답 신호는 없다. 그런데 실행 기록을 보면 계산 방식이 흔들린 흔적이 남아 있다.</p>
+      <p>여기서 개선 담당자가 수정안을 낸다. "합계 검산용 스크립트 <code>scripts/check_totals.py</code>를 만들고, 보고서를 쓰기 전에 반드시 그 스크립트를 돌리라는 지침을 넣자." 그리고 시스템 프롬프트에 "숫자를 손으로 더하지 말고 검산 스크립트를 써라"는 한 줄을 추가한다.</p>
+      <p>시험 단계에서 같은 과제를 새 하네스로 다시 돌린다. 이번에는 검산 스크립트를 돌린 기록이 남고 산출물의 합계가 맞아떨어진다. 두 실행의 차이가 '근거'다. 종합 단계는 이 근거를 모아 스크립트와 지침을 포함한 하네스를 최종본으로 채택한다.</p>
+      <p>다음 과제(다른 회계 업무)에서는 이 채택된 하네스를 출발점으로 쓴다. 과제를 거듭할수록 분야별로 '잘 먹힌 매뉴얼'이 쌓인다.</p>
+    </section>
+
+    <section id="s6" aria-labelledby="s6h">
+      <h2 id="s6h">6. 두 단계 재귀</h2>
+      <p>과제 수준 재귀(task-level recursion)는 지금 이 과제 하나를 더 잘 풀도록 하네스를 고치는 일이다. 위의 3단계가 바로 이것이다. 하네스 구축 수준 재귀(harnessing-level recursion)는 과제가 채택되면 채택된 하네스와 근거 있는 교훈(lesson)을 분야별 라이브러리(library)에 저장하는 일이다. 다음 과제는 그 라이브러리를 읽고 시작한다.</p>
+      <p>라이브러리는 벤치마크, 실행기, 모드, 예산(k), 시드(seed)별로 나뉜다. 같은 분야의 과제들은 순서대로 처리하고 자기보다 앞선 항목만 읽는다.</p>
+    </section>
+
+    <section id="s7" aria-labelledby="s7h">
+      <h2 id="s7h">7. 넓게 갈까, 깊게 갈까 — 병렬과 순차</h2>
+      <p>과제 수준 재귀는 두 방식으로 키운다. 병렬(parallel, 내부 이름 agg)은 같은 근거에서 일반 후보 k개와 영역 후보 k개를 만든다(합쳐 2k개). 그것들을 각각 실행해 보고 k개의 독립적인 종합안을 만든다. 넓게 탐색하는 쪽이다. 순차(sequential, 내부 이름 seq)는 다듬은 하네스와 쌓인 근거를 다음 단계로 넘기며 Propose–Probe–Compose를 k번 반복한다. 깊게 정련하는 쪽이다.</p>
+      <p>예산은 두 모드 모두 정해져 있다. 롤아웃(실행)이 R = 4k개, 개선 단계(세션)가 P = 3k개다. 4k는 k개의 공유 기본 실행, 2k개의 후보 실행, k개의 최종 실행으로 이뤄진다. 3k는 k개의 INV 세션, k개의 DOM 세션, k개의 종합 컴포지션이다.</p>
+
+      <figure>
+        <img src="assets/harness2-eli5/harness2_recursion_modes.png" width="2417" height="600"
+             alt="과제 수준 재귀의 두 형태 도해. (a) 병렬 재귀는 k개의 일반 후보와 k개의 영역별 후보를 각각 시험 실행한 뒤, 공유된 실행 근거로 k개의 종합안을 만든다. (b) 순차 재귀는 다듬어진 하네스와 누적된 실행 근거를 다음 단계로 넘기며 Propose–Probe–Compose를 k번 반복한다.">
+        <figcaption>
+          <span class="cap-title">그림 2. 과제 수준 재귀의 두 형태 — 병렬은 넓게, 순차는 깊게</span>
+          <strong>읽는 법:</strong> (a) 병렬은 여러 후보를 동시에 펼친다. k개의 일반 후보와 k개의 영역 후보를 각각 시험 실행하고, 그 실행 근거를 공유해 k개의 종합안을 만든다. (b) 순차는 한 번에 하나씩 깊게 간다. 다듬은 하네스와 누적된 근거를 다음 단계로 넘기며 Propose–Probe–Compose를 k번 반복한다. 두 방식의 예산은 롤아웃 R = 4k, 개선 세션 P = 3k로 같다.
+          <span class="cap-src">출처: google-research/harness2 <code>assets/harness2_recursion_modes.png</code> (Apache-2.0) · 논문 Figure 4에 대응 · <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/assets/harness2_recursion_modes.png" target="_blank" rel="noopener">원본 파일 permalink</a></span>
+          <a class="fullview" href="assets/harness2-eli5/harness2_recursion_modes.png" target="_blank" rel="noopener">원본 크기로 보기 (2417×600)</a>
+        </figcaption>
+      </figure>
+    </section>
+
+    <section id="s8" aria-labelledby="s8h">
+      <h2 id="s8h">8. 하네스를 이루는 여덟 부품(c1~c8)</h2>
+      <p>Harness²가 편집 대상으로 여기는 부품은 여덟 개다.</p>
+      <ol>
+        <li>시스템 프롬프트(system prompt) — 무엇을 하라고 알려 주는 기본 지시</li>
+        <li>가드레일(guardrails) — 하면 안 되는 것, 반드시 지킬 것</li>
+        <li>메모리(memory) — 오래 기억할 내용</li>
+        <li>도구 안내(tool guidance) — 도구를 어떻게 쓸지 설명</li>
+        <li>서브에이전트(subagents) — 일을 나눠 맡기는 하위 에이전트</li>
+        <li>스킬(skills) — 필요할 때 불러 쓰는 작업 절차</li>
+        <li>스크립트(scripts) — 미리 만들어 둔 결정적 도우미 코드</li>
+        <li>플러그인(plugins) — 도구 루프 안에서 강제하는 장치</li>
+      </ol>
+      <p>OpenCode 실행기 기준으로, 항상 켜져 있는(always-on) 파일은 <code>systemprompt.md</code>, <code>guardrails.md</code>, <code>LongTermMEMORY.md</code>, <code>tool_descriptions/tool_guidance.md</code> 네 개다. 이 네 파일을 합친 길이는 24,000자로 제한된다. 코드 주석은 그 이유를 "여기의 모든 토큰은 에이전트의 출력 예산과 경쟁한다"고 적어 둔다.</p>
+
+      <figure>
+        <img src="assets/harness2-eli5/components.png" width="2400" height="859"
+             alt="여덟 개 하네스 컴포넌트를 런타임 역할별로 묶은 도해. 시스템 프롬프트·가드레일·메모리·스킬은 컨텍스트를 구성하고, 두 번째 묶음은 도구 인터페이스를 정의하며, 서브에이전트는 위임 작업을, 플러그인은 미들웨어를 담당한다.">
+        <figcaption>
+          <span class="cap-title">그림 3. 여덟 개 컴포넌트와 런타임 역할</span>
+          <strong>읽는 법:</strong> 컴포넌트를 무엇을 하는지에 따라 묶은 그림이다. 시스템 프롬프트·가드레일·메모리·스킬은 '무엇을 어떻게 할지'를 담는 컨텍스트 묶음, 도구 안내와 스크립트는 '어떤 도구를 어떻게 쓰는지'를 정하는 인터페이스 묶음, 서브에이전트는 위임, 플러그인은 도구 루프 안에서 강제하는 미들웨어다. Harness²는 이 파일들을 편집 대상으로 삼는다.
+          <span class="cap-src">출처: google-research/harness2 <code>assets/components.png</code> (Apache-2.0) · 논문 Figure 2에 대응 · <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/assets/components.png" target="_blank" rel="noopener">원본 파일 permalink</a></span>
+          <a class="fullview" href="assets/harness2-eli5/components.png" target="_blank" rel="noopener">원본 크기로 보기 (2400×859)</a>
+        </figcaption>
+      </figure>
+    </section>
+
+    <section id="s9" aria-labelledby="s9h">
+      <h2 id="s9h">9. 어디에 쓰나</h2>
+      <p>공개된 세 가지 전문 벤치마크에서 검증한다.</p>
+      <ul>
+        <li><strong>JobBench</strong> — 전문 직무 과제</li>
+        <li><strong>LAB</strong> — 법률 실무 과제(Harvey Labs 기반)</li>
+        <li><strong>WorkBuddy-Bench</strong> — 사무・웹・코드 과제(Tencent 기반)</li>
+      </ul>
+      <p>저장소는 두 가지 실행기를 지원한다. 기본은 OpenCode이고 <code>--substrate cx</code>로 Codex를 쓸 수 있다. README가 보고한 단일 Harness² 단계의 향상은 WorkBuddy-Bench에서 최대 11.5점, JobBench에서 4.5점, LAB 부분 통과율(partial pass rate)에서 11.8퍼센트포인트다. 재귀 예산을 키우면 추가 향상이 보고된다. 이 수치는 README와 논문이 보고한 값이며 차트의 분모나 채점기가 바뀌면 달라질 수 있다.</p>
+
+      <div class="table-wrap" role="region" tabindex="0" aria-label="표 1. Harness² 대표 결과">
+        <table>
+          <caption>표 1. Harness² 한 단계(k=1)와 병렬 재귀(k=5)의 대표 결과 (논문 Table 1·2에서 발췌·재구성 · 좁은 화면에서는 표를 옆으로 넘겨 보세요)</caption>
+          <thead>
+            <tr>
+              <th scope="col">벤치마크 · 지표</th>
+              <th scope="col">모델 · 실행기</th>
+              <th scope="col" class="num">기준 하네스</th>
+              <th scope="col" class="num">Harness² (k=1)</th>
+              <th scope="col" class="num">+재귀 (k=5, 변화량)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>WorkBuddy-Bench · Avg</td><td>GLM-5 · OpenCode</td><td class="num">64.2</td><td class="num">75.7</td><td class="num delta">+3.9</td></tr>
+            <tr><td>WorkBuddy-Bench · Avg</td><td>Gemini 3.5 Flash · OpenCode</td><td class="num">72.4</td><td class="num">77.5</td><td class="num delta">+3.3</td></tr>
+            <tr><td>JobBench · Score</td><td>Gemini 3.5 Flash · OpenCode</td><td class="num">31.5</td><td class="num">36.0</td><td class="num delta">+3.0</td></tr>
+            <tr><td>JobBench · Score</td><td>GLM-5 · OpenCode</td><td class="num">20.6</td><td class="num">24.2</td><td class="num delta">+4.2</td></tr>
+            <tr><td>LAB · Partial</td><td>GLM-5 · OpenCode</td><td class="num">59.6</td><td class="num">71.4</td><td class="num delta">+6.7</td></tr>
+            <tr><td>LAB · Partial</td><td>Gemini 3.5 Flash · OpenCode</td><td class="num">79.9</td><td class="num">81.9</td><td class="num delta">+2.6</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="cap-src" style="display:block;margin-top:-6px;">수치는 논문 Table 1·2(평균, 3회 실행)에서 그대로 옮겼습니다. '메타 하네스(offline)' 등 다른 기준선은 표에서 생략했습니다. 원문: <a href="https://arxiv.org/abs/2610.14224v1" target="_blank" rel="noopener">arXiv:2610.14224 (CC BY 4.0)</a>.</p>
+
+      <h3>부품별 기여는 얼마나 될까 (어블레이션)</h3>
+      <p>논문은 세 부품을 하나씩 빼 보고 기여도를 쟀다. Gemini 3.5 Flash · OpenCode, k=1 조건이다.</p>
+      <div class="table-wrap" role="region" tabindex="0" aria-label="표 2. 부품 제거 어블레이션">
+        <table>
+          <caption>표 2. 부품 제거 어블레이션 (논문 Table 3 재구성 · 좁은 화면에서는 표를 옆으로 넘겨 보세요)</caption>
+          <thead>
+            <tr><th scope="col">구성</th><th scope="col" class="num">WorkBuddy-Bench</th><th scope="col" class="num">JobBench</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Harness² (전체)</strong></td><td class="num">77.5</td><td class="num">36.0</td></tr>
+            <tr><td>개선 라이브러리 제거(w/o library)</td><td class="num">74.4</td><td class="num">34.2</td></tr>
+            <tr><td>범위 분리 제거(w/o scoping)</td><td class="num">74.6</td><td class="num">32.3</td></tr>
+            <tr><td>종합 제거(w/o composition)</td><td class="num">75.9</td><td class="num">34.1</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="cap-src" style="display:block;margin-top:-6px;">라이브러리 제거는 WorkBuddy 3.1점 / JobBench 1.8점 하락, 범위 분리 제거는 2.9점 / 3.7점 하락, 종합 제거는 1.6점 / 1.9점 하락을 보고합니다. 이 수치는 README·논문이 보고한 값이며, 차트의 분모나 채점기가 바뀌면 달라질 수 있습니다. 이 글은 이 수치를 직접 재현한 것이 아닙니다.</p>
+    </section>
+
+    <section id="s10" aria-labelledby="s10h">
+      <h2 id="s10h">10. 무엇을 못 하나 — 한계</h2>
+      <p>모델 가중치는 고정이다. 그래서 모델이 애초에 모르는 지식이나 능력 자체를 새로 만들어 주지는 못한다. 하네스로 뽑아낼 수 있는 것은 그 모델의 잠재력 안쪽이다.</p>
+      <p>실행이 늘어난다. 모델 호출 기반 실행에서는 롤아웃과 개선 세션이 모두 API 비용을 쓴다. 저장소도 "작은 과제 선택으로 시작하라"고 권한다.</p>
+      <p>정답 없는 실행 피드백에 기대는 방식이라 실행의 변동성과 모델이 공유하는 편향에 민감하다. 정답성이나 다른 과제로의 전이를 보장하지도 않는다. 선택(selection)이 항상 옳은 것도 아니다. 더 약한 후보를 고를 수 있고 잘못된 전제가 다음으로 전파될 수 있다. 평가 환경도 주의해야 한다. 벤치마크 데이터가 공개돼 있어 네트워크가 열린 실행자는 채점표에 스스로 접근할 수 있다. 저장소는 평가 전에 네트워크를 차단하라고 안내한다.</p>
+    </section>
+
+    <section id="s11" aria-labelledby="s11h">
+      <h2 id="s11h">11. 설치와 체험</h2>
+      <p>리눅스, 파이썬 3.12, uv가 필요하다. 저장소 루트에서:</p>
+      <pre><code>uv venv --python 3.12 .venv
+source .venv/bin/activate
+uv pip install -e '.[render]'
+harness2-demo --output runs/demo --k 2</code></pre>
+      <p>harness2-demo는 모델 자격 증명 없이 돌아간다. 결정적 편집기와 실제 파이썬 실행으로 두 재귀 모드를 모두 체험하게 해 준다. 모델을 실제로 부르는 벤치마크는 Vertex AI 자격 증명과 추가 의존성(Node.js 20+, gcloud CLI, 벤치마크별 도구)이 필요하다.</p>
+
+      <figure>
+        <img src="assets/harness2-eli5/harness2-setup.gif" width="2560" height="256"
+             alt="JobBench를 설치하고 실행하는 명령 흐름을 보여 주는 애니메이션. uv pip install -e '.[render]'로 설치하고, harness2-setup jb로 준비한 뒤, harness2 --bench jb --k 1 --mode parallel로 실행한다.">
+        <figcaption>
+          <span class="cap-title">그림 4. 설치·설정·실행 흐름(JobBench 예시)</span>
+          <strong>읽는 법:</strong> README의 안내용 애니메이션이다. 설치 → <code>harness2-setup jb</code>(벤치마크 준비) → <code>harness2 --bench jb --k 1 --mode parallel</code>(한 단계 재귀 실행) 순서를 보여 준다. 애니메이션이 재생되지 않는 환경에서는 위 명령 블록을 그대로 쓰면 된다.
+          <span class="cap-src">출처: google-research/harness2 <code>assets/harness2-setup.gif</code> (Apache-2.0) · <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/assets/harness2-setup.gif" target="_blank" rel="noopener">원본 파일 permalink</a></span>
+          <a class="fullview" href="assets/harness2-eli5/harness2-setup.gif" target="_blank" rel="noopener">원본 크기로 보기 (2560×256)</a>
+        </figcaption>
+      </figure>
+    </section>
+
+    <section id="s12" aria-labelledby="s12h">
+      <h2 id="s12h">12. 핵심 용어 한 줄 풀이</h2>
+      <p class="term"><b>하네스(harness)</b>: 모델을 에이전트로 만들어 주는 주변 시스템 전체.</p>
+      <p class="term"><b>하네싱(harnessing)</b>: 그 시스템을 최적화하는 일.</p>
+      <p class="term"><b>실행기(substrate)</b>: 에이전트가 실제로 돌아가는 틀(OpenCode 또는 Codex).</p>
+      <p class="term"><b>롤아웃(rollout)</b>: 하네스 하나로 과제를 한 번 실행한 것.</p>
+      <p class="term"><b>개선자(improver)</b>: 하네스 수정안을 내는 모델. 실행자(executor)와 같은 모델이어도 된다.</p>
+      <p class="term"><b>대비(contrastive) 근거</b>: 채점표 없이, 실행들 사이의 차이에서 얻는 근거.</p>
+    </section>
+
+    <section class="note" aria-labelledby="fresh-h">
+      <h2 id="fresh-h" style="margin-top:0;font-size:19px;">신선도와 출처</h2>
+      <ul>
+        <li>확인 날짜: 2026-10-19(KST).</li>
+        <li>원본 저장소 HEAD: <code>1cfe254e8d25b15f37048c3730134686abe60335</code> (2026-10-13, "Fix arXiv link").</li>
+        <li>논문: Harness²: Recursive Agent Harnessing for an Open World, arXiv:2610.14224 (2026-10-09, CC BY 4.0).</li>
+        <li>주요 출처 파일(원본 저장소 기준): README.md, docs/EXPERIMENTS.md, docs/BENCHMARKS.md, docs/SETUP.md, harness2/core/recursion.py, harness2/core/tree.py, harness2/core/selection.py, harness2/core/ledger.py, harness2/substrate/opencode.py.</li>
+        <li>이 글은 저장소 문서와 코드, 논문을 읽고 정리한 설명이며 Harness² 자체를 직접 실행해 검증한 결과가 아니다.</li>
+      </ul>
+    </section>
+
+    <section class="attribution" aria-labelledby="lic-h">
+      <h2 id="lic-h">시각자료와 라이선스</h2>
+      <ul>
+        <li><strong>그림(다이어그램):</strong> 워드마크, 파이프라인, 재귀 모드, 컴포넌트, 설정 GIF는 google-research/harness2 저장소에서 가져왔습니다. 이 저장소는 <strong>Apache-2.0</strong>입니다. 원본 이미지를 <code>docs/assets/harness2-eli5/</code>에 보존해 외부 핫링크에 의존하지 않습니다. 각 그림 아래에 원본 파일 permalink를 두었습니다.</li>
+        <li><strong>표의 수치:</strong> 논문 arXiv:2610.14224의 Table 1·2·3에서 발췌해 한국어 표로 재구성했습니다. 논문은 <strong>CC BY 4.0</strong>입니다. 축·단위·실험 조건을 바꾸지 않았고, 값을 새로 만들지 않았습니다.</li>
+        <li><strong>표시:</strong> 이 페이지는 원본 자료를 요약·설명하는 2차 문서이며, Apache-2.0(코드·이미지)·CC BY 4.0(논문) 조건에 따라 출처와 라이선스를 표기합니다.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <p>원본: <a href="https://github.com/google-research/harness2" target="_blank" rel="noopener">github.com/google-research/harness2</a> (Apache-2.0) · 프로젝트 웹: <a href="https://harness2.github.io" target="_blank" rel="noopener">harness2.github.io</a> · 논문: <a href="https://arxiv.org/abs/2610.14224" target="_blank" rel="noopener">arXiv:2610.14224</a> (CC BY 4.0).</p>
+      <p>이 페이지는 사용자 요청에 따라 원문 저장소·논문을 읽고 ELI5 원칙(쉬운 말, 일상 비유, 3단계 핵심, 구체 예제, 원문 그림·표 활용)으로 정리한 한국어 설명입니다. 원문 자료를 대신하지 않습니다.</p>
+      <p>작성일: 2026-10-19 · 원본 HEAD <code>1cfe254</code>.</p>
+    </div>
+  </footer>
+</body>
+</html>
