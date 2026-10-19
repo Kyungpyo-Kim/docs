@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 470" role="img" aria-labelledby="ozTitle ozDesc" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+  <title id="ozTitle">OzCore 처리 흐름 개념도</title>
+  <desc id="ozDesc">입력 행렬이 공통 지수로 정렬되어 s개의 나머지로 분해되고, 128x128 INT8 곱셈 누적 엔진에서 나머지별 GEMM을 수행한 뒤, 경로 선택기와 CRT 복원·FP32 정렬을 거쳐 출력되는 4단계 흐름도. INT8과 INT8 조합은 경로 선택기에서 CRT 단계를 우회한다.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2171B5"/>
+    </marker>
+    <style>
+      .step{fill:#ffffff;stroke:#2171B5;stroke-width:2;rx:12}
+      .stage{fill:#0b3d91;stroke:#0b3d91}
+      .bypass{fill:#ffffff;stroke:#0f766e;stroke-width:2;stroke-dasharray:7 5;rx:12}
+      .h{font-size:17px;font-weight:700;fill:#102a43}
+      .b{font-size:14px;fill:#334155}
+      .lab{font-size:13px;font-weight:700;fill:#0b3d91}
+      .blab{font-size:12px;font-weight:700;fill:#0f766e}
+      .small{font-size:12px;fill:#64748b}
+    </style>
+  </defs>
+
+  <rect x="8" y="8" width="964" height="454" rx="16" fill="#f8fafc" stroke="#d9e2ec"/>
+
+  <rect class="step" x="28" y="42" width="210" height="118"/>
+  <text class="h" x="48" y="74">입력</text>
+  <text class="b" x="48" y="99">FP16 · BF16 · FP32</text>
+  <text class="b" x="48" y="120">또는 INT8 행렬</text>
+  <text class="small" x="48" y="144">형식이 섞여 들어와도 됨</text>
+
+  <rect class="step" x="278" y="42" width="250" height="118"/>
+  <text class="lab" x="298" y="70">1단계 · 전처리</text>
+  <text class="b" x="298" y="95">공통 지수로 자리를 맞추고</text>
+  <text class="b" x="298" y="116">s개의 나머지로 쪼갬</text>
+  <text class="small" x="298" y="140">나머지는 모두 8비트 안에 들어감</text>
+
+  <rect class="step" x="568" y="42" width="384" height="118"/>
+  <text class="lab" x="588" y="70">2단계 · 128×128 INT8 곱셈·누적 엔진</text>
+  <text class="b" x="588" y="95">나머지 하나마다 행렬 곱셈 한 번</text>
+  <text class="b" x="588" y="116">누적은 32비트 정수로</text>
+  <text class="small" x="588" y="140">s가 클수록 패스가 늘어남</text>
+
+  <line x1="238" y1="101" x2="272" y2="101" stroke="#2171B5" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <line x1="528" y1="101" x2="562" y2="101" stroke="#2171B5" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <path d="M 760 160 L 760 214" stroke="#2171B5" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text class="small" x="770" y="192">모든 나머지 패스 완료</text>
+
+  <rect class="step" x="568" y="218" width="384" height="86"/>
+  <text class="lab" x="588" y="246">3단계 · 경로 선택</text>
+  <text class="b" x="588" y="271">INT8×INT8이면 CRT 복원을 건너뛰고</text>
+  <text class="b" x="588" y="292">정수 결과를 그대로 내보냄</text>
+
+  <path d="M 568 254 L 470 254" stroke="#0f766e" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <rect class="bypass" x="250" y="216" width="214" height="90"/>
+  <text class="blab" x="268" y="244">우회 경로 (INT8 전용)</text>
+  <text class="b" x="268" y="269">CRT·부동소수 변환 없이</text>
+  <text class="b" x="268" y="290">INT32 정수를 바로 출력</text>
+
+  <path d="M 760 304 L 760 356" stroke="#2171B5" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <rect class="step" x="568" y="360" width="384" height="86"/>
+  <text class="lab" x="588" y="388">4단계 · CRT 복원 + FP32 정렬</text>
+  <text class="b" x="588" y="413">나머지 조각들을 원래 정수로 합치고</text>
+  <text class="b" x="588" y="434">다시 부동소수점으로 맞춰 출력</text>
+
+  <path d="M 470 405 L 250 405 L 250 306" stroke="#2171B5" stroke-width="2.5" fill="none"/>
+  <rect class="stage" x="28" y="360" width="210" height="86" rx="12"/>
+  <text class="h" x="48" y="392" fill="#f8fafc">출력</text>
+  <text class="b" x="48" y="417" fill="#dbeafe">FP32 (또는 INT8) 행렬</text>
+  <text class="small" x="48" y="438" fill="#93c5fd">두 경로가 같은 출력 정렬기에서 합쳐짐</text>
+  <path d="M 250 405 L 244 405" stroke="#2171B5" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <text class="small" x="28" y="34">OzCore 4단계 개념도 · 해설자 재구성(원문 그림 아님)</text>
+</svg>

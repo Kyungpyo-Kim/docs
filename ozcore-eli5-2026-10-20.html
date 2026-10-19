@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OzCore ELI5 — INT8 곱셈기로 FP32 정확도를 흉내 내는 칩</title>
+  <meta name="description" content="MICRO 2026 논문 OzCore를 저자 공개 아티팩트와 서지 정보로 풀어 쓴 한국어 ELI5 해설. Ozaki Scheme II, CRT, s 손잡이, 정확도·성능 주장과 검증 범위를 정리합니다.">
+  <style>
+    :root{
+      --ink:#16212e;--muted:#5b6b7d;--paper:#fff;--bg:#f3f6fa;--navy:#0b2545;
+      --blue:#1d5fb4;--blue-soft:#e7f0fb;--teal:#0f766e;--teal-soft:#e3f4f1;
+      --orange:#b4530a;--orange-soft:#fdf0e3;--red:#a4262c;--line:#d8e1ea;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;color:var(--ink);background:var(--bg);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.78}
+    main{max-width:1020px;margin:0 auto;padding:40px 20px 72px}
+    header{padding:36px;border-radius:18px;color:#fff;background:linear-gradient(128deg,#0b2545,#1d5fb4);box-shadow:0 14px 30px #0b254530}
+    h1{margin:12px 0 14px;font-size:clamp(27px,4.6vw,42px);line-height:1.2;letter-spacing:-.03em}
+    h2{margin:46px 0 14px;font-size:25px;line-height:1.35}
+    h3{margin:28px 0 10px;font-size:19px}
+    p{margin:12px 0}
+    a{color:var(--blue)}
+    header a{color:#dbeafe}
+    .eyebrow,.tag{display:inline-block;padding:3px 10px;border-radius:999px;font-size:13px;font-weight:750}
+    .eyebrow{color:#dbeafe;background:#ffffff20}
+    .tag{color:#0b3d91;background:var(--blue-soft);margin-right:6px}
+    .meta{color:#cbd5e1;font-size:14px;margin:10px 0 0}
+    .lead,.card,.note,.takeaway,.src{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:22px;box-shadow:0 3px 12px #0b254508}
+    .lead{margin-top:24px;font-size:18px}
+    .note{border-left:5px solid var(--orange);background:#fffaf4}
+    .takeaway{border:2px solid #93c5fd;background:#f8fbff}
+    .src{background:#fbfcfe}
+    .toc{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px 22px;margin-top:22px}
+    .toc ol{margin:8px 0 0;padding-left:22px}
+    .toc li{margin:5px 0}
+    figure{margin:26px 0;padding:16px;background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:0 3px 12px #0b254508}
+    figure img{width:100%;height:auto;display:block;border-radius:8px;border:1px solid #e5ecf4;background:#fff}
+    figcaption{margin-top:12px;color:#33465c;font-size:14.5px;line-height:1.7}
+    figcaption strong{color:var(--ink)}
+    .figsrc{display:block;margin-top:6px;color:var(--muted);font-size:13px}
+    .zoom{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:13.5px;font-weight:700;color:#fff;background:#16507f;border-radius:8px;padding:7px 11px;text-decoration:none}
+    .zoom:hover{background:#0b2545;text-decoration:none}
+    .table-wrap{overflow-x:auto;margin:18px 0}
+    table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);font-size:15px}
+    caption{caption-side:top;text-align:left;padding:10px 12px;color:#33465c;font-size:14px}
+    th,td{padding:11px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+    th{background:#eaf1fb;font-size:14px}
+    tbody tr:nth-child(even) td{background:#fafcfe}
+    tr:last-child td{border-bottom:0}
+    td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+    .good{color:var(--teal);font-weight:750}
+    .warn{color:var(--orange);font-weight:750}
+    ul,ol{padding-left:24px}
+    li{margin:7px 0}
+    .kv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0}
+    .kv .card{padding:16px}
+    .kv b{display:block;font-size:22px;color:#0b3d91;line-height:1.3}
+    .kv span{color:var(--muted);font-size:13.5px}
+    footer{margin-top:46px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+    footer ul{padding-left:20px}
+    .skip{position:absolute;left:-9999px}
+    .skip:focus{left:12px;top:12px;background:#fff;color:#0b3d91;padding:10px 14px;border-radius:8px;z-index:9}
+    @media(max-width:720px){
+      main{padding:22px 14px 48px}
+      header{padding:24px}
+      .kv{grid-template-columns:1fr}
+      h2{font-size:22px}
+    }
+  </style>
+</head>
+<body>
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+<main id="main">
+  <header>
+    <span class="eyebrow">ELI5 · 하드웨어 아키텍처 · MICRO 2026</span>
+    <h1>OzCore: INT8 곱셈기로 FP32 정확도를 흉내 내는 칩</h1>
+    <p>MICRO 2026 논문 “OzCore: An Ozaki-Scheme-II-Based GEMM Architecture for Unified Integer and Floating-Point Computation”를 저자 공개 아티팩트와 논문 서지 정보로 풀어 쓴 해설입니다.</p>
+    <p class="meta">논문 확인일: 2026-10-20 · 페이지 작성: 2026-10-20 · ELI5 + humanize-korean 적용 · 논문 원문 PDF 미확보(아티팩트 기반 해설)</p>
+  </header>
+
+  <section class="lead" aria-labelledby="summary">
+    <h2 id="summary" style="margin-top:0">한 줄 요약</h2>
+    <p><strong>OzCore는 8비트 정수 곱셈기를 사용해 16비트·32비트 부동소수점 행렬 곱셈을 흉내 내는 하드웨어 구조입니다.</strong> 정확도 손실을 거의 내지 않으면서 여러 숫자 형식을 한 벌의 정수 연산 장치로 처리하는 것이 목표입니다.</p>
+  </section>
+
+  <section class="note" aria-labelledby="scope">
+    <h2 id="scope" style="margin-top:0">먼저 밝힐 것: 이 글의 출처와 읽는 범위</h2>
+    <p>이 글은 <strong>논문 원문 PDF를 읽고 쓴 것이 아닙니다.</strong> 2026년 10월 20일 기준으로 OzCore 논문의 공식 원문은 공개되어 있지 않고, Crossref·OpenAlex에서 논문 DOI도 확인되지 않습니다. 그래서 다음 공개 자료를 근거로 삼았습니다.</p>
+    <ul>
+      <li>MICRO 2026 공식 프로그램 페이지의 논문 제목·저자·세션 정보</li>
+      <li>저자들이 공개한 MICRO 2026 아티팩트 v1.2 (Zenodo, 저자 코드·데이터는 MIT 라이선스)</li>
+      <li>아티팩트에 포함된 재현 스크립트, 저자가 배포한 수치·그림</li>
+    </ul>
+    <p>따라서 이 글은 논문 전체를 해설한 글이기보다는 “저자가 공개한 아티팩트와 논문 서지 정보를 바탕으로 한 해설”에 가깝습니다. 논문에만 있고 아티팩트에 없는 절·주장·수치는 다루지 않았습니다. 실측값, 저자 데이터 재계산, 해석적 모델 결과는 본문에서 구분해 표시했습니다.</p>
+
+    <h3>논문 서지</h3>
+    <ul>
+      <li><strong>제목:</strong> OzCore: An Ozaki-Scheme-II-Based GEMM Architecture for Unified Integer and Floating-Point Computation</li>
+      <li><strong>저자:</strong> Jihoon Park, Junhee Lee, Howon Lee, Jinsu Kim (서울대학교), Jinseok Kim (Rebellions), Jae-Joon Kim (서울대학교)</li>
+      <li><strong>발표처:</strong> IEEE/ACM MICRO 2026 (그리스 아테네), Session 6C “Low-Bit Quantization for LLM Inference”</li>
+      <li><strong>아티팩트:</strong> 개념 DOI 10.5281/zenodo.21541963 · v1.2 DOI 10.5281/zenodo.22748465</li>
+    </ul>
+  </section>
+
+  <nav class="toc" aria-label="목차">
+    <strong>목차</strong>
+    <ol>
+      <li><a href="#why">왜 이런 칩이 필요한가</a></li>
+      <li><a href="#analogy">비유: 시계 여러 개로 원래 시간 맞히기</a></li>
+      <li><a href="#flow">처리 흐름 네 단계</a></li>
+      <li><a href="#example">구체 예제: 1.5 곱하기 2.25</a></li>
+      <li><a href="#knob">s는 정확도와 속도를 맞바꾸는 손잡이</a></li>
+      <li><a href="#diff">기존 방식과 무엇이 다른가</a></li>
+      <li><a href="#perf">성능 주장과 그 근거</a></li>
+      <li><a href="#limits">한계와 검증하지 않은 것</a></li>
+      <li><a href="#wrap">정리</a></li>
+      <li><a href="#sources">출처</a></li>
+    </ol>
+  </nav>
+
+  <section aria-labelledby="why">
+    <h2 id="why">왜 이런 칩이 필요한가</h2>
+    <p>거대 언어 모델은 대부분 행렬 곱셈을 합니다. 그런데 숫자를 어떻게 표현하느냐에 따라 정확도와 속도가 갈립니다. 부동소수점 FP32나 FP64로 계산하면 정확하지만 느리고 전력을 많이 씁니다. 반대로 8비트 정수(INT8)나 4비트 부동소수점(FP4)으로 계산하면 빠르지만 정확도가 떨어집니다.</p>
+    <p>여기서 “정확한 계산을 낮은 정밀도 하드웨어로 흉내 내기”라는 아이디어가 나옵니다. 이미 GEMMul8 같은 라이브러리가 이 방식을 GPU에서 구현했습니다. 이를 Ozaki Scheme II라고 부릅니다. 문제는 기존 구현이 대부분 소프트웨어이거나 여러 형식을 한 칩에 밀어 넣느라 회로가 커진다는 점입니다.</p>
+
+    <figure>
+      <a href="assets/ozcore-fig3-osii-breakdown-a6000.png" target="_blank" rel="noopener">
+        <img src="assets/ozcore-fig3-osii-breakdown-a6000.png" width="1483" height="696" loading="lazy" alt="NVIDIA A6000에서 측정한 Ozaki Scheme II의 행렬곱 유형별 단계 실행 시간 비중. 파랑은 스케일링, 주황은 INT8 GEMM, 노랑은 모듈러 축소, 초록은 FP64 CRT 복원이다.">
+      </a>
+      <figcaption>
+        <strong>논문 그림 3 · A6000에서 측정한 Ozaki Scheme II 단계별 시간 비중.</strong>
+        <span>읽는 법: 세로축은 전체 실행 시간 중 각 단계가 차지한 비중(0~1), 가로축은 행렬곱 유형과 시퀀스 길이(1k·2k·4k·8k)입니다. 파랑=스케일링(부동소수점), 주황=INT8 GEMM, 노랑=모듈러 축소, 초록=CRT 복원(FP64)입니다. INT8 행렬곱만으로 시간이 다 설명되지 않고, 주변의 부동소수점 작업이 큰 비중을 차지한다는 점을 보여줍니다. 이 그림은 실측 기록이며 OzCore 칩 예측이 아닙니다.</span>
+        <span class="figsrc">출처: 저자 공개 MICRO 2026 아티팩트 v1.2(DOI 10.5281/zenodo.22748465), <code>results/fig3_fp64_overhead.png</code>(원자료는 A6000 측정 CSV). 재사용: 저자 코드·데이터 MIT 라이선스 기준, 출처 표기. 원문 그림 번호는 논문 기준입니다.</span>
+      </figcaption>
+      <a class="zoom" href="assets/ozcore-fig3-osii-breakdown-a6000.png" target="_blank" rel="noopener">확대 원본 보기</a>
+    </figure>
+  </section>
+
+  <section aria-labelledby="analogy">
+    <h2 id="analogy">비유: 시계 여러 개로 원래 시간 맞히기</h2>
+    <p>중국인 나머지 정리(CRT)는 초등학교 수학에서 출발합니다. 시계가 하나만 있으면 바늘 위치로 시간을 알 수 있습니다. 시계가 열두 개 있고 시간을 표시하는 주기가 모두 다르면 훨씬 큰 수까지 알아낼 수 있습니다. 예를 들어 7로 나눈 나머지와 11로 나눈 나머지를 동시에 알면 두 나머지의 조합만으로 원래 수를 하나로 특정할 수 있습니다.</p>
+    <p>OzCore는 이 원리를 행렬 곱셈에 씁니다. 큰 부동소수점 수를 여러 “작은 시계”에 해당하는 나머지로 쪼갭니다. 각 나머지는 8비트 안에 들어갑니다. 8비트 곱셈기는 값싸고 빠릅니다. 나머지별로 곱셈을 끝낸 뒤 나머지들을 다시 모아 원래 정확한 값을 복원합니다. 필요한 시계 개수는 <strong>s</strong>로 표시합니다. s가 크면 정확하지만 패스가 늘고, s가 작으면 빠르지만 정확도가 떨어집니다.</p>
+  </section>
+
+  <section aria-labelledby="flow">
+    <h2 id="flow">처리 흐름 네 단계</h2>
+    <p><strong>1단계는 전처리입니다.</strong> 입력 행렬(FP16·BF16·FP32 또는 INT8)을 공통 지수로 자리를 맞추고 s개의 나머지로 쪼갭니다. 이때 나머지는 모두 INT8 범위 안에 들어가도록 설계되어 있습니다.</p>
+    <p><strong>2단계는 계산입니다.</strong> 128×128 INT8 곱셈·누적 엔진이 나머지 하나마다 행렬 곱셈을 한 번씩 수행합니다. 누적은 32비트 정수로 합니다. s가 3이면 같은 행렬 곱셈을 세 번, 나머지를 바꿔서 합니다.</p>
+    <p><strong>3단계는 경로 선택입니다.</strong> 입력이 둘 다 INT8이면 원래 정수 곱셈이므로 CRT 복원이 필요 없습니다. 이때는 복원 단계를 건너뛰고 정수 결과를 그대로 내보냅니다. 부동소수점 입력일 때만 복원 경로를 탑니다.</p>
+    <p><strong>4단계는 복원과 정렬입니다.</strong> CRT(개리 알고리즘)로 나머지 조각들을 원래 정수로 합치고 다시 부동소수점으로 맞춰 FP32 출력을 만듭니다. 우회 경로와 복원 경로는 마지막 출력 정렬기에서 합쳐집니다.</p>
+
+    <figure>
+      <img src="assets/ozcore-flow-diagram.svg" width="980" height="470" loading="lazy" alt="OzCore 처리 흐름 개념도. 입력 행렬이 전처리에서 s개 나머지로 분해되고, 128x128 INT8 곱셈 누적 엔진을 거친 뒤 경로 선택기에서 INT8 전용 우회 경로 또는 CRT 복원 경로로 나뉘고, 출력 정렬기에서 합쳐진다.">
+      <figcaption>
+        <strong>개념도(해설자 재구성) · OzCore 4단계 처리 흐름.</strong>
+        <span>한 번의 논리적 GEMM은 전처리 → 나머지별 INT8 곱셈·누적 → 경로 선택 → CRT 복원·FP32 정렬 순서로 흐릅니다. INT8×INT8 조합만 우회 경로를 타고 CRT를 건너뜁니다. 이 그림은 설명을 위해 이 해설에서 새로 그린 것으로, 논문의 원본 구조도가 아닙니다. 논문 원문 구조도와 세부 버퍼·파이프라인 구성은 다를 수 있습니다.</span>
+        <span class="figsrc">출처: 이 해설자 작성(SVG). 저자 아티팩트의 HLS 소스(`preprocess`, `simd_engine`, `path_chooser`, `postprocess`, `output_aligner`)와 아티팩트 설명을 참고해 개념만 재구성했습니다.</span>
+      </figcaption>
+    </figure>
+  </section>
+
+  <section aria-labelledby="example">
+    <h2 id="example">구체 예제: 1.5 곱하기 2.25</h2>
+    <p>설명을 위해 두 수에 같은 값 64를 곱해 정수로 만듭니다. 1.5는 96, 2.25는 144가 됩니다. 곱은 13,824입니다.</p>
+    <p>이제 이 13,824를 실제 모듈러스 값인 255와 253으로 나눠 봅니다. 13,824를 255로 나눈 나머지는 54입니다. 253으로 나눈 나머지는 162입니다. 나머지 (54, 162)만 남기고 원래 곱은 잊습니다. 두 나머지의 조합은 255 곱하기 253, 즉 64,515보다 작은 수 중에서 13,824를 유일하게 가리킵니다. 다시 13,824를 복원하고 64를 두 번 곱한 값 4,096으로 나누면 3.375가 됩니다. 실제로 1.5 곱하기 2.25는 3.375입니다.</p>
+    <p class="note" style="padding:16px 18px">실제 하드웨어는 공통 지수 정렬과 반올림이 더 복잡합니다. 위 계산은 원리를 보여주기 위한 단순화된 예제이며 논문 수치가 아닙니다.</p>
+  </section>
+
+  <section aria-labelledby="knob">
+    <h2 id="knob">s는 정확도와 속도를 맞바꾸는 손잡이</h2>
+    <p>저자가 배포한 데이터로 다시 계산한 논문 표 2를 봅니다. 조건은 WikiText-2 데이터셋, LLaMA-3.1 8B와 70B, 시퀀스 길이 2,048, 141개 샘플, 내부 축소 차원 k=128입니다.</p>
+
+    <div class="table-wrap">
+      <table>
+        <caption><strong>논문 표 2(아티팩트 데이터 재계산) · WikiText-2 퍼플렉서티(PPL), 낮을수록 좋음.</strong> 시퀀스 길이 2,048, n=141, k=128. 8B·70B 모두 OzCore s=3이 BF16과 사실상 같은 수준입니다. 논문 표기값과는 0.001~0.003 차이가 날 수 있습니다.</caption>
+        <thead>
+          <tr><th>모델</th><th class="num">BF16 기준</th><th class="num">OzCore s=2</th><th class="num">s=3</th><th class="num">s=4</th><th class="num">s=6</th><th class="num">s=12</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>LLaMA-3.1 8B</td><td class="num">6.244</td><td class="num warn">6.363</td><td class="num good">6.242</td><td class="num">6.243</td><td class="num">6.244</td><td class="num">6.241</td></tr>
+          <tr><td>LLaMA-3.1 70B</td><td class="num">2.810</td><td class="num warn">2.933</td><td class="num good">2.809</td><td class="num">2.809</td><td class="num">2.809</td><td class="num">2.810</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>8B 모델에서 BF16 기준값은 6.244입니다. OzCore s=3은 6.242, s=2는 6.363입니다. 70B 모델에서 BF16은 2.810, OzCore s=3은 2.809, s=2는 2.933입니다. s=3이면 원래 정밀도와 사실상 구분되지 않고 s=2는 손실이 눈에 띕니다.</p>
+
+    <p>논문 표 4는 왜 s=2가 불안한지 보여줍니다(LLaMA-3.1 8B). b_S라는 시프트 비트 값을 1로 낮추면 s=2에서 PPL이 8.529까지 치솟습니다.</p>
+
+    <div class="table-wrap">
+      <table>
+        <caption><strong>논문 표 4(아티팩트 데이터 재계산) · LLaMA-3.1 8B 스케일링 파라미터 민감도.</strong> *(별표)는 저자 기본값 b_S=8, b_P=8 조합입니다. s=3·s=4는 b_S가 낮아도 안정적이고, s=2만 크게 흔들립니다.</caption>
+        <thead>
+          <tr><th rowspan="2">s</th><th colspan="5">(a) b_S 변화 (b_P=8 고정)</th></tr>
+          <tr><th class="num">b_S=1</th><th class="num">2</th><th class="num">4</th><th class="num">8*</th><th class="num">16</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>2</td><td class="num warn">8.529</td><td class="num">6.726</td><td class="num">6.384</td><td class="num">6.363</td><td class="num">6.362</td></tr>
+          <tr><td>3</td><td class="num">6.253</td><td class="num">6.246</td><td class="num">6.242</td><td class="num">6.242</td><td class="num">6.243</td></tr>
+          <tr><td>4</td><td class="num">6.242</td><td class="num">6.243</td><td class="num">6.239</td><td class="num">6.243</td><td class="num">6.244</td></tr>
+        </tbody>
+        <thead>
+          <tr><th rowspan="2">s</th><th colspan="5">(b) b_P 변화 (b_S=8 고정)</th></tr>
+          <tr><th class="num">b_P=1</th><th class="num">2</th><th class="num">4</th><th class="num">8*</th><th class="num">16</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>2</td><td class="num">6.391</td><td class="num">6.374</td><td class="num">6.363</td><td class="num">6.363</td><td class="num">6.363</td></tr>
+          <tr><td>3</td><td class="num">6.241</td><td class="num">6.244</td><td class="num">6.243</td><td class="num">6.242</td><td class="num">6.243</td></tr>
+          <tr><td>4</td><td class="num">6.242</td><td class="num">6.243</td><td class="num">6.243</td><td class="num">6.243</td><td class="num">6.245</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>반면 s=3과 s=4는 b_S를 1로 낮춰도 각각 6.253, 6.242로 거의 흔들리지 않습니다. 저자 기본값은 b_S=8, b_P=8이며 이 조합에서 s=3이 안전한 타협점이 됩니다.</p>
+  </section>
+
+  <section aria-labelledby="diff">
+    <h2 id="diff">기존 방식과 무엇이 다른가</h2>
+    <p><strong>첫째, 대상이 다릅니다.</strong> FP8·MXFP8·MXFP4는 표현 자체를 낮춰서 저장과 연산을 줄입니다. OzCore는 INT8 하드웨어를 그대로 쓰되 나머지 분해와 복원으로 정확도를 되찾습니다.</p>
+
+    <div class="table-wrap">
+      <table>
+        <caption><strong>논문 표 6(아티팩트 데이터 재계산) · MX 형식과 OzCore 비교.</strong> 상대 L2 오차는 BF16 입력 128×128 무작위 행렬 곱셈을 FP64 기준으로 비교하고 φ∈{0.1, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0}에서 최소~최대를 적었습니다. PPL은 WikiText-2, n=141, 시퀀스 길이 2,048입니다.</caption>
+        <thead><tr><th>형식</th><th>상대 L2 오차(최소~최대)</th><th class="num">PPL</th></tr></thead>
+        <tbody>
+          <tr><td>OzCore s=3</td><td class="num good">2.2e-3 ~ 4.2e-3</td><td class="num good">6.24</td></tr>
+          <tr><td>OzCore s=2</td><td class="num warn">2.5e-2 ~ 4.4e-2</td><td class="num">6.36</td></tr>
+          <tr><td>MXFP8 (E4M3)</td><td class="num">4.4e-2 ~ 6.9e-2</td><td class="num">6.51</td></tr>
+          <tr><td>MXFP8 (E5M2)</td><td class="num">7.4e-2 ~ 9.5e-2</td><td class="num">6.87</td></tr>
+          <tr><td>MXFP4 (E2M1)</td><td class="num warn">1.5e-1 ~ 2.2e-1</td><td class="num warn">25.61</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>BF16 입력 128×128 무작위 행렬 곱셈에서 FP64 기준 상대 L2 오차는 OzCore s=3이 2.2e-3에서 4.2e-3 사입니다. MXFP8 E4M3는 4.4e-2에서 6.9e-2, MXFP4는 1.5e-1에서 2.2e-1입니다. 같은 조건에서 PPL은 OzCore s=3이 6.24, MXFP8 E4M3가 6.51, MXFP8 E5M2가 6.87, MXFP4가 25.61입니다.</p>
+
+    <p><strong>둘째, 하드웨어 구조가 다릅니다.</strong> 기존 Ozaki Scheme II 구현은 FP64 CRT 복원에 의존합니다. OzCore는 이 복원을 정수 쪽으로 옮기고 INT8 곱셈기 하나로 모든 형식을 처리하는 구조를 제안합니다. 아래 그림 5의 무작위 행렬 실험에서 OzCore는 같은 s에서 기존 OS-II 기준선보다 오차가 낮습니다.</p>
+
+    <figure>
+      <a href="assets/ozcore-fig5-error-vs-osii.png" target="_blank" rel="noopener">
+        <img src="assets/ozcore-fig5-error-vs-osii.png" width="1500" height="615" loading="lazy" alt="무작위 행렬 GEMM에서 s에 따른 상대 L2 오차와 보존 비트 수를 비교한 네 개 패널. 파란 선 OzCore가 붉은 선 OS-II보다 같은 s에서 오차가 낮다.">
+      </a>
+      <figcaption>
+        <strong>논문 그림 5 · 무작위 행렬 GEMM의 상대 L2 오차와 보존 비트(저자 데이터 재계산).</strong>
+        <span>읽는 법: 가로축은 정수 패스 수 s(2~8), 왼쪽 세로축은 FP64 기준 상대 L2 오차(로그 스케일), 오른쪽 세로축은 평균 보존 비트 수입니다. 네 패널은 φ=0.5, 1.0, 1.5, 2.0입니다. 붉은 삼각형이 OS-II, 파란 원이 OzCore입니다. 같은 s에서 OzCore가 더 낮은 오차에 도달하는 것이 이 그림의 요지입니다. 이는 무작위 행렬 실험이며 LLM PPL 실험이 아닙니다.</span>
+        <span class="figsrc">출처: 저자 공개 아티팩트 v1.2(DOI 10.5281/zenodo.22748465), <code>results/fig5_vs_os_ii.png</code>. 아티팩트 기준 계산 깊이는 “recompute”(배포 데이터로 재계산)입니다. 재사용: 저자 코드·데이터 MIT 라이선스 기준, 출처 표기.</span>
+      </figcaption>
+      <a class="zoom" href="assets/ozcore-fig5-error-vs-osii.png" target="_blank" rel="noopener">확대 원본 보기</a>
+    </figure>
+
+    <p><strong>셋째, 다중 형식 융합의 비효율을 피합니다.</strong> 여러 형식을 한 MAC 배열에 밀어 넣는 융합 설계는 형식이 늘수록 면적 대비 처리량이 떨어집니다. 저자 계산으로 FP16 단독 대비 모든 형식 융합 시 TOPS/mm²가 0.21배에서 0.47배로 줄어듭니다. OzCore는 대신 INT8 배열 하나에 형식 변환 부담을 전처리·후처리로 옮깁니다.</p>
+  </section>
+
+  <section aria-labelledby="perf">
+    <h2 id="perf">성능 주장과 그 근거</h2>
+    <p>저자 아티팩트의 하드웨어 수치는 28나노 FDSOI 공정, 300 MHz, 128×128 INT8 배열 기준입니다.</p>
+
+    <div class="table-wrap">
+      <table>
+        <caption><strong>아티팩트 하드웨어 데이터 · 면적과 전력(그림 2·10·11의 근거 데이터).</strong> 28nm FDSOI급 셀 라이브러리 합성에서 나온 정제 수치입니다. 원시 합성 리포트는 NDA로 비공개이며, 이 해설에서 재합성하지 않았습니다.</caption>
+        <thead><tr><th>구성 요소</th><th class="num">면적 (mm²)</th><th class="num">전력 (W)</th></tr></thead>
+        <tbody>
+          <tr><td>전처리(preprocess)</td><td class="num">4.961</td><td class="num">0.329</td></tr>
+          <tr><td>SIMD 엔진(INT8 곱셈·누적)</td><td class="num">52.147</td><td class="num">3.904</td></tr>
+          <tr><td>후처리(postprocess)</td><td class="num">13.8</td><td class="num">1.143</td></tr>
+          <tr><td>제어 논리</td><td class="num">1.428</td><td class="num">0.241</td></tr>
+          <tr><td><strong>합계</strong></td><td class="num"><strong>72.3</strong></td><td class="num"><strong>5.617</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="kv">
+      <div class="card"><b>72.3 mm²</b><span>OzCore 총면적(28nm FDSOI, 300 MHz). 기준선 fused(all) 34.48 mm²보다 큽니다.</span></div>
+      <div class="card"><b>6.025 mm²</b><span>저자가 동일 처리량 기준으로 1/12 환산한 OzCore 면적. 34.48 mm²와 비교해 5.72배 밀도로 계산합니다.</span></div>
+      <div class="card"><b>5.617 W</b><span>OzCore 총전력(합성 정제 수치). SIMD 엔진이 3.904 W로 대부분입니다.</span></div>
+    </div>
+
+    <figure>
+      <a href="assets/ozcore-fig10-area-iso-throughput.png" target="_blank" rel="noopener">
+        <img src="assets/ozcore-fig10-area-iso-throughput.png" width="1357" height="643" loading="lazy" alt="FP16 기준 동일 처리량에서 융합 기준선, FP16 단독, INT8 단독, OzCore의 면적을 비교한 누적 막대 그래프. OzCore는 6.025 제곱밀리미터로 표시된다.">
+      </a>
+      <figcaption>
+        <strong>논문 그림 10 · 동일 처리량 기준 면적 비교(저자 계산).</strong>
+        <span>읽는 법: 세로축은 면적(mm²), 가로축은 융합 기준선·FP16 단독·INT8 단독·OzCore입니다. 각 막대의 퍼센트는 그 막대 안에서 해당 구성 요소가 차지하는 비중입니다. OzCore 막대(6.025 mm²)는 원시 면적 72.3 mm²를 동일 처리량 기준으로 1/12 환산한 값이며, INT8 MAC 배열 72.1%·후처리 19.1%·전처리 6.9%·제어 2.0%로 구성됩니다. 원시 면적만 보면 OzCore가 기준선보다 크다는 점을 함께 봐야 합니다.</span>
+        <span class="figsrc">출처: 저자 공개 아티팩트 v1.2(DOI 10.5281/zenodo.22748465), <code>results/fig10_area_breakdown.png</code>. 계산 깊이는 “replot”(정제된 합성 면적 재배치)이며 재합성이 아닙니다. 재사용: 저자 코드·데이터 MIT 라이선스 기준, 출처 표기.</span>
+      </figcaption>
+      <a class="zoom" href="assets/ozcore-fig10-area-iso-throughput.png" target="_blank" rel="noopener">확대 원본 보기</a>
+    </figure>
+
+    <figure>
+      <a href="assets/ozcore-fig11-normalized-tops.png" target="_blank" rel="noopener">
+        <img src="assets/ozcore-fig11-normalized-tops.png" width="1462" height="738" loading="lazy" alt="FP16을 1.0으로 정규화한 면적당 처리량 막대 그래프. 기준선 형식들과 Ozaki NPU의 OZ12부터 OZ1까지가 나오며, OZ1 INT8이 5.72배다.">
+      </a>
+      <figcaption>
+        <strong>논문 그림 11 · 면적당 처리량(FP16=1.0 정규화, 저자 계산).</strong>
+        <span>읽는 법: 세로축은 FP16 기준으로 정규화한 TOPS/mm²(빨간 점선이 1.0), 가로축 왼쪽은 기준선 형식들, 오른쪽은 Ozaki NPU입니다. OZ 뒤 숫자는 s(정수 패스 수, OZ1은 순수 INT8)입니다. Ozaki NPU 막대는 짙은 색이 32비트 입력, 옅은 색이 16비트 입력 모드입니다. 값은 OZ1(INT8) 5.72×, OZ2 2.86×, OZ3 1.91×, OZ4 1.43×, OZ6 0.95×, OZ12 0.48×입니다. 동일 처리량 기준 면적 환산을 전제로 한 저자 계산입니다.</span>
+        <span class="figsrc">출처: 저자 공개 아티팩트 v1.2(DOI 10.5281/zenodo.22748465), <code>results/fig11_normalized_tops.png</code>. 계산 깊이는 “replot”(정제 합성 밀도 재배치). 재사용: 저자 코드·데이터 MIT 라이선스 기준, 출처 표기.</span>
+      </figcaption>
+      <a class="zoom" href="assets/ozcore-fig11-normalized-tops.png" target="_blank" rel="noopener">확대 원본 보기</a>
+    </figure>
+
+    <p>그림 13은 시스템 수준 전망을 계산한 모델입니다. A100·A6000·H100의 계산 대 메모리 대역폭 비율별로 동일 면적에서 프리필 처리량이 얼마나 늘어나는지 계산합니다.</p>
+
+    <figure>
+      <a href="assets/ozcore-fig13-prefill-speedup-model.png" target="_blank" rel="noopener">
+        <img src="assets/ozcore-fig13-prefill-speedup-model.png" width="1500" height="527" loading="lazy" alt="세 개 패널의 선 그래프. 세로축은 OzCore 프리필 속도 향상 배수, 가로축은 계산 대 메모리 대역폭 비율이며, A100, A6000, H100의 능선 지점에 세로 점선이 있다.">
+      </a>
+      <figcaption>
+        <strong>논문 그림 13 · 동일 면적 프리필 처리량 모델(해석적 모델, 실측 아님).</strong>
+        <span>읽는 법: 세로축은 기준선 대비 OzCore 프리필 처리량 배수, 가로축은 계산 대 메모리 대역폭 비율(ops/byte)입니다. 세로 점선은 A100·A6000·H100의 능선 지점입니다. 패널은 LLaMA-8B(seqlen 2k), LLaMA-8B(seqlen 8k), LLaMA-70B(seqlen 8k, TP=4)입니다. 모델 입력 밀도는 s=2 2.85×, s=3 1.90×, s=4 1.43×입니다. A100·A6000·H100 지점에서 배수는 s=2 1.39~2.44×, s=3 1.39~1.76×, s=4 1.31~1.38×이고, 메모리 대역폭에 묶이면 1.0×로 사라집니다.</span>
+        <span class="figsrc">출처: 저자 공개 아티팩트 v1.2(DOI 10.5281/zenodo.22748465), <code>results/fig13_system_prefill_ridge.png</code>. 계산 깊이는 “model”(해석적 루프라인 + 정제 밀도 입력). 재사용: 저자 코드·데이터 MIT 라이선스 기준, 출처 표기.</span>
+      </figcaption>
+      <a class="zoom" href="assets/ozcore-fig13-prefill-speedup-model.png" target="_blank" rel="noopener">확대 원본 보기</a>
+    </figure>
+
+    <figure>
+      <a href="assets/ozcore-fig16-fp64-overhead-model.png" target="_blank" rel="noopener">
+        <img src="assets/ozcore-fig16-fp64-overhead-model.png" width="1323" height="494" loading="lazy" alt="네 개 묶음 막대 그래프. 세로축은 OzCore 대비 실행 시간 배수, 각 묶음은 1k에서 8k 프리필 시퀀스 길이이며, FP64 ALU s=6, 조여 잡은 s=3 상한, OzCore 전체를 비교한다.">
+      </a>
+      <figcaption>
+        <strong>논문 그림 16 · FP64 오버헤드 절제 모델(해석적 모델, 실측 아님).</strong>
+        <span>읽는 법: 세로축은 OzCore 실행 시간을 1.0으로 둔 상대 실행 시간 배수, 가로축은 프리필 시퀀스 길이 m(1k·2k·4k·8k)입니다. 회색은 FP64 ALU s=6, 하늘색은 조여 잡은 s=3 상한, 짙은 파랑은 OzCore 전체입니다. FP64 ALU 대비 2.25~2.60×, 조여 잡은 s=3 상한 대비 1.19~1.44×입니다.</span>
+        <span class="figsrc">출처: 저자 공개 아티팩트 v1.2(DOI 10.5281/zenodo.22748465), <code>results/fig16_fp64_3point.png</code>. 계산 깊이는 “model”(사이클 폐쇄형 모델 + 정제 면적 예산). 재사용: 저자 코드·데이터 MIT 라이선스 기준, 출처 표기.</span>
+      </figcaption>
+      <a class="zoom" href="assets/ozcore-fig16-fp64-overhead-model.png" target="_blank" rel="noopener">확대 원본 보기</a>
+    </figure>
+
+    <p>측정값은 그림 3뿐입니다. 예를 들어 1024×14336×4096 GEMM에서 네이티브 FP64가 5.297 ms, fast 모드 s=2가 2.767 ms, s=3이 3.742 ms였습니다. 1024×128256×4096에서는 네이티브가 45.936 ms, s=2가 24.516 ms였습니다. 이 값은 기준선 소프트웨어 구현을 GPU에서 잰 것이며 OzCore 칩 측정이 아닙니다.</p>
+  </section>
+
+  <section aria-labelledby="limits">
+    <h2 id="limits">한계와 검증하지 않은 것</h2>
+    <ul>
+      <li>논문 원문 PDF를 읽지 못했습니다. 위 내용은 공개 아티팩트와 서지 정보 범위 안에 있습니다.</li>
+      <li>면적·전력 수치는 NDA 28나노 셀 라이브러리 합성에서 나온 값입니다. 아티팩트는 정제된 수치와 재작성 스크립트만 공개하며 합성을 다시 돌리려면 라이선스가 필요합니다. 이 글에서 재합성하지 않았습니다.</li>
+      <li>그림 13과 16은 해석적 모델이지 실측 가속비가 아닙니다. 그림 3만 A6000 실측 기록입니다.</li>
+      <li>표 2·4·6은 저자가 배포한 데이터를 CPU에서 다시 계산한 값입니다. 논문 표기와 0.001에서 0.003 정도 차이가 날 수 있습니다. 표 4와 표 2·6은 재계산했고, 표 5(FP8·GPTQ 체크포인트)와 표 3(제로샷 정확도)은 데이터가 없어 재현하지 않았습니다.</li>
+      <li>저자 아티팩트는 NVIDIA RTX A6000에서 검증됐습니다. H100은 ragged batched INT8 attention GEMM에서 알려진 실행 문제가 있고 Blackwell은 검증되지 않았습니다.</li>
+      <li>OzCore 칩 자체의 실리콘 측정값은 공개되지 않았습니다.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="wrap">
+    <h2 id="wrap">정리</h2>
+    <div class="takeaway">
+      <p>OzCore의 핵심 주장은 세 문장으로 줄어듭니다.</p>
+      <ol>
+        <li>정확한 부동소수점 행렬 곱셈을 INT8 곱셈기로 대신할 수 있다.</li>
+        <li>필요한 나머지 개수 s를 조절하면 정확도와 비용을 맞바꿀 수 있고 s=3이 좋은 타협점이다.</li>
+        <li>형식별 MAC 배열을 여러 개 두는 대신 INT8 배열 하나와 전처리·후처리로 통합하면 동일 처리량 기준 면적 효율이 좋아진다.</li>
+      </ol>
+      <p>다만 이 세 주장 중 실측으로 확인된 것은 기준선 소프트웨어의 GPU 단계별 시간뿐입니다. 칩 면적과 시스템 가속은 저자의 합성 수치와 해석적 모델에 기반합니다. 논문이 공개되면 원문의 실측 절과 비교해 다시 확인할 필요가 있습니다.</p>
+    </div>
+  </section>
+
+  <section class="src" aria-labelledby="sources">
+    <h2 id="sources" style="margin-top:0">출처</h2>
+    <ul>
+      <li>MICRO 2026 공식 프로그램(논문 제목·저자·Session 6C): <a href="https://www.microarch.org/micro59/program/" target="_blank" rel="noopener">microarch.org/micro59/program/</a></li>
+      <li>서울대학교 VLSI 연구실 게재 목록(MICRO 2026, Oct. 2026): <a href="https://vlsi.snu.ac.kr/publications/" target="_blank" rel="noopener">vlsi.snu.ac.kr/publications/</a></li>
+      <li>저자 공개 아티팩트(MICRO 2026 OzCore artifact, v1.2, MIT): 개념 DOI <a href="https://doi.org/10.5281/zenodo.21541963" target="_blank" rel="noopener">10.5281/zenodo.21541963</a> · v1.2 DOI <a href="https://doi.org/10.5281/zenodo.22748465" target="_blank" rel="noopener">10.5281/zenodo.22748465</a></li>
+      <li>Ozaki Scheme II 원 방법론(GEMMul8 기반, 참고): Katsuhisa Ozaki, Yuki Uchino, Toshiyuki Imamura, “Ozaki Scheme II: A GEMM-oriented emulation of floating-point matrix multiplication using an integer modular technique”, <a href="https://arxiv.org/abs/2504.08009" target="_blank" rel="noopener">arXiv:2504.08009</a></li>
+    </ul>
+    <p style="color:var(--muted);font-size:13.5px">그림과 표의 권리: 사용한 그림·표 수치는 저자가 MIT 라이선스로 공개한 아티팩트 v1.2의 코드·데이터에서 재생성·재계산한 결과물이며, 각 캡션에 원문 그림 번호와 출처를 표기했습니다. 논문 도판 자체의 저작권은 발표처(ACM/IEEE)에 있으며, 이 페이지는 논문 PDF 도판을 복제하지 않고 저자 공개 아티팩트 산출물을 사용했습니다. 개념도 1은 이 해설자가 새로 그린 것입니다.</p>
+  </section>
+
+  <footer>
+    <p>이 페이지는 ELI5 원칙(비유 하나·핵심 흐름·구체 예제)과 humanize-korean 윤문 절차로 작성했습니다. 수치·고유명사·조건은 원문(저자 아티팩트·공식 프로그램) 표기를 유지했습니다.</p>
+    <p>정확한 논문 식별일: 2026-10-20 · 아티팩트 버전: v1.2 · 적용 모델: opencode/deepseek-v4.1-flash-free.</p>
+  </footer>
+</main>
+</body>
+</html>
