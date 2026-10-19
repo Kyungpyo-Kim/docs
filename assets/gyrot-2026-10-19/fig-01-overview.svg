@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 540" width="1000" height="540" role="img" aria-labelledby="t d" font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Malgun Gothic',sans-serif">
+<title id="t">GyRot 3단계 개요</title>
+<desc id="d">문제, 알고리즘 해법, 하드웨어 구현을 세 단계로 요약한 독자적 재구성 도식</desc>
+<rect width="1000" height="540" fill="#ffffff"/>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"/></marker></defs>
+<text x="30" y="42" font-size="24" fill="#102a43" font-weight="750" text-anchor="start">GyRot의 3단계 흐름</text>
+<text x="30" y="66" font-size="12" fill="#5f7183" font-weight="400" text-anchor="start">독자적 재구성 도식 (원문 그림 아님) · 논문 §I, §IV, §V 참조</text>
+<rect x="30" y="92" width="298" height="352" rx="14" fill="#eef4ff" stroke="#d9e2ec" stroke-width="1"/>
+<rect x="30" y="92" width="298" height="40" rx="14" fill="#102a43" stroke="none" stroke-width="1"/>
+<rect x="30" y="92" width="298" height="40" rx="0" fill="#102a43" stroke="none" stroke-width="1"/>
+<text x="44" y="118" font-size="15" fill="#ffffff" font-weight="750" text-anchor="start">1단계 · 문제</text>
+<rect x="351" y="92" width="298" height="352" rx="14" fill="#e8f7f4" stroke="#d9e2ec" stroke-width="1"/>
+<rect x="351" y="92" width="298" height="40" rx="14" fill="#0f766e" stroke="none" stroke-width="1"/>
+<rect x="351" y="92" width="298" height="40" rx="0" fill="#0f766e" stroke="none" stroke-width="1"/>
+<text x="365" y="118" font-size="15" fill="#ffffff" font-weight="750" text-anchor="start">2단계 · 알고리즘</text>
+<rect x="672" y="92" width="298" height="352" rx="14" fill="#fdf1e7" stroke="#d9e2ec" stroke-width="1"/>
+<rect x="672" y="92" width="298" height="40" rx="14" fill="#c2410c" stroke="none" stroke-width="1"/>
+<rect x="672" y="92" width="298" height="40" rx="0" fill="#c2410c" stroke="none" stroke-width="1"/>
+<text x="686" y="118" font-size="15" fill="#ffffff" font-weight="750" text-anchor="start">3단계 · 하드웨어</text>
+<text x="46" y="156" font-size="13" fill="#182532" font-weight="400" text-anchor="start">회전: 값을 전체 채널로</text>
+<text x="46" y="175" font-size="13" fill="#182532" font-weight="400" text-anchor="start">넓게 흩뿌려 분포를 평평하게</text>
+<text x="46" y="214" font-size="13" fill="#182532" font-weight="400" text-anchor="start">그룹 양자화: 작은 구역마다</text>
+<text x="46" y="233" font-size="13" fill="#182532" font-weight="400" text-anchor="start">자(스케일)를 따로 씀</text>
+<text x="46" y="282" font-size="13" fill="#b42318" font-weight="750" text-anchor="start">그냥 합치면 목표가 반대라</text>
+<text x="46" y="301" font-size="13" fill="#b42318" font-weight="750" text-anchor="start">그룹이 작을수록 어긋남</text>
+<circle cx="70" cy="342" r="5" fill="#2563eb" opacity="0.75"/>
+<circle cx="87" cy="342" r="5" fill="#2563eb" opacity="0.75"/>
+<circle cx="104" cy="342" r="5" fill="#2563eb" opacity="0.75"/>
+<circle cx="121" cy="342" r="5" fill="#2563eb" opacity="0.75"/>
+<circle cx="138" cy="342" r="5" fill="#2563eb" opacity="0.75"/>
+<circle cx="155" cy="342" r="5" fill="#2563eb" opacity="0.75"/>
+<circle cx="172" cy="342" r="5" fill="#2563eb" opacity="0.75"/>
+<circle cx="189" cy="342" r="5" fill="#2563eb" opacity="0.75"/>
+<circle cx="206" cy="342" r="5" fill="#2563eb" opacity="0.75"/>
+<circle cx="223" cy="342" r="5" fill="#2563eb" opacity="0.75"/>
+<circle cx="240" cy="342" r="5" fill="#2563eb" opacity="0.75"/>
+<circle cx="257" cy="342" r="5" fill="#2563eb" opacity="0.75"/>
+<circle cx="274" cy="342" r="5" fill="#2563eb" opacity="0.75"/>
+<circle cx="291" cy="342" r="5" fill="#2563eb" opacity="0.75"/>
+<text x="46" y="324" font-size="11" fill="#5f7183" font-weight="400" text-anchor="start">회전 = 넓게 퍼짐</text>
+<text x="46" y="404" font-size="11" fill="#5f7183" font-weight="400" text-anchor="start">그룹 = 좁게 묶음</text>
+<rect x="60" y="356" width="72" height="32" rx="8" fill="none" stroke="#0f766e" stroke-width="2"/>
+<rect x="146" y="356" width="72" height="32" rx="8" fill="none" stroke="#0f766e" stroke-width="2"/>
+<rect x="232" y="356" width="72" height="32" rx="8" fill="none" stroke="#0f766e" stroke-width="2"/>
+<text x="367" y="156" font-size="13" fill="#182532" font-weight="400" text-anchor="start">CoRFiG: 회전 범위 R을</text>
+<text x="367" y="175" font-size="13" fill="#182532" font-weight="400" text-anchor="start">그룹 G보다 크게 (R=2^g·G)</text>
+<text x="367" y="194" font-size="13" fill="#182532" font-weight="400" text-anchor="start">기본 R=1024, G=32</text>
+<text x="367" y="226" font-size="13" fill="#182532" font-weight="400" text-anchor="start">HAP: 큰 값 채널을 하다마드의</text>
+<text x="367" y="245" font-size="13" fill="#182532" font-weight="400" text-anchor="start">하모닉 행에 정렬해 그룹 범위를 좁힘</text>
+<text x="367" y="296" font-size="13" fill="#182532" font-weight="400" text-anchor="start">재구성 비대칭 양자화 +</text>
+<text x="367" y="315" font-size="13" fill="#182532" font-weight="400" text-anchor="start">0점 올림으로 정수 역양자화 가능</text>
+<text x="367" y="366" font-size="12" fill="#0f766e" font-weight="750" text-anchor="start">효과: 스케일·0점을 INT8로</text>
+<text x="367" y="385" font-size="12" fill="#0f766e" font-weight="750" text-anchor="start">낮춰도 정확도 유지 (Table IV·V)</text>
+<text x="688" y="156" font-size="13" fill="#182532" font-weight="400" text-anchor="start">INT4 텐서 PE: 8×8×32</text>
+<text x="688" y="175" font-size="13" fill="#182532" font-weight="400" text-anchor="start">한 사이클 2048 연산</text>
+<text x="688" y="226" font-size="13" fill="#182532" font-weight="400" text-anchor="start">역양자화 전 과정을 정수로</text>
+<text x="688" y="245" font-size="13" fill="#182532" font-weight="400" text-anchor="start">(스케일·0점 INT8, 누산 32비트)</text>
+<text x="688" y="296" font-size="13" fill="#182532" font-weight="400" text-anchor="start">회전은 FVU의 FHT가 담당</text>
+<text x="688" y="315" font-size="13" fill="#182532" font-weight="400" text-anchor="start">HAP는 가중치에 미리 합침</text>
+<text x="688" y="366" font-size="12" fill="#c2410c" font-weight="750" text-anchor="start">효과: FP 역양자화 경로 제거</text>
+<text x="688" y="385" font-size="12" fill="#c2410c" font-weight="750" text-anchor="start">(논문 Fig. 7·8, Table VIII)</text>
+<line x1="332" y1="268" x2="347" y2="268" stroke="#2563eb" stroke-width="3" marker-end="url(#ah)"/>
+<line x1="653" y1="268" x2="668" y2="268" stroke="#2563eb" stroke-width="3" marker-end="url(#ah)"/>
+<rect x="30" y="466" width="940" height="52" rx="12" fill="#f8fbff" stroke="#d9e2ec" stroke-width="1"/>
+<text x="46" y="492" font-size="12" fill="#5f7183" font-weight="400" text-anchor="start">논문이 보고한 결과(8비트 Tender 기준): 기하평균 3.40× 속도, 3.64× 에너지 효율. 초록·결론은 “최대 3.4×/3.6×”라고 표현한다.</text>
+<text x="46" y="511" font-size="12" fill="#5f7183" font-weight="400" text-anchor="start">이 값은 특정 기준선·실험 조건의 결과이며 모든 LLM과 기기에서 보장되는 최댓값이 아니다.</text>
+</svg>

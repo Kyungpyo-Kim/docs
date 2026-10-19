@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 650" width="1000" height="650" role="img" aria-labelledby="t d" font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Malgun Gothic',sans-serif">
+<title id="t">GyRot 처리 소자(PE) 구조</title>
+<desc id="d">INT4 32-way 내적부터 정수 역양자화, 누산, FP16 출력까지의 흐름을 재구성한 도식</desc>
+<rect width="1000" height="650" fill="#ffffff"/>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"/></marker></defs>
+<text x="30" y="42" font-size="24" fill="#102a43" font-weight="750" text-anchor="start">GyRot 처리 소자(PE)와 역양자화 흐름</text>
+<text x="30" y="66" font-size="12" fill="#5f7183" font-weight="400" text-anchor="start">독자적 재구성 도식 (원문 그림 아님) · 논문 Fig. 7(b)·8, §V 참조</text>
+<rect x="30" y="120" width="150" height="76" rx="12" fill="#eef4ff" stroke="#2563eb" stroke-width="1"/>
+<text x="105.0" y="152" font-size="14" fill="#182532" font-weight="750" text-anchor="middle">INT4 활성화</text>
+<text x="105.0" y="174" font-size="10.5" fill="#5f7183" font-weight="400" text-anchor="middle">X0~X31 (32레인)</text>
+<rect x="200" y="120" width="150" height="76" rx="12" fill="#eef4ff" stroke="#2563eb" stroke-width="1"/>
+<text x="275.0" y="152" font-size="14" fill="#182532" font-weight="750" text-anchor="middle">INT4 가중치</text>
+<text x="275.0" y="174" font-size="10.5" fill="#5f7183" font-weight="400" text-anchor="middle">W0~W31 (32레인)</text>
+<rect x="375" y="120" width="150" height="76" rx="12" fill="#e8f7f4" stroke="#0f766e" stroke-width="1"/>
+<text x="450.0" y="152" font-size="14" fill="#182532" font-weight="750" text-anchor="middle">32-way 내적</text>
+<text x="450.0" y="174" font-size="10.5" fill="#5f7183" font-weight="400" text-anchor="middle">13비트 부분합</text>
+<rect x="550" y="120" width="190" height="76" rx="12" fill="#fdf1e7" stroke="#c2410c" stroke-width="1"/>
+<text x="645.0" y="152" font-size="14" fill="#182532" font-weight="750" text-anchor="middle">정수 역양자화</text>
+<text x="645.0" y="174" font-size="10.5" fill="#5f7183" font-weight="400" text-anchor="middle">×S_X, −Z_X×W_SUM, ×S_W (INT8)</text>
+<rect x="765" y="120" width="205" height="76" rx="12" fill="#f3e8ff" stroke="#7c3aed" stroke-width="1"/>
+<text x="867.5" y="152" font-size="14" fill="#182532" font-weight="750" text-anchor="middle">32비트 정수 누산</text>
+<text x="867.5" y="174" font-size="10.5" fill="#5f7183" font-weight="400" text-anchor="middle">출력만 FP16으로 변환</text>
+<line x1="180" y1="158" x2="198" y2="158" stroke="#2563eb" stroke-width="2" marker-end="url(#ah)"/>
+<line x1="350" y1="158" x2="373" y2="158" stroke="#2563eb" stroke-width="2" marker-end="url(#ah)"/>
+<line x1="525" y1="158" x2="548" y2="158" stroke="#2563eb" stroke-width="2" marker-end="url(#ah)"/>
+<line x1="740" y1="158" x2="763" y2="158" stroke="#2563eb" stroke-width="2" marker-end="url(#ah)"/>
+<text x="30" y="236" font-size="13" fill="#182532" font-weight="400" text-anchor="start">· 8×8 PE 배열: 8×8×32 = 한 사이클에 2048개 연산. 시스톨릭 데이터플로, 출력 정지(output-stationary) 방식이다.</text>
+<text x="30" y="255" font-size="13" fill="#182532" font-weight="400" text-anchor="start">· 그룹별 가중치 합 W_SUM = Σ ŵ 는 한 번 계산해 행 전체가 공유한다. 스케일·0점·누산이 모두 정수라 FP 변환 지점이 없다.</text>
+<rect x="30" y="286" width="940" height="130" rx="14" fill="#f8fbff" stroke="#d9e2ec" stroke-width="1"/>
+<text x="48" y="318" font-size="15" fill="#102a43" font-weight="750" text-anchor="start">메모리와 회전 유닛 (FVU)</text>
+<text x="48" y="346" font-size="12" fill="#182532" font-weight="400" text-anchor="start">· 입력 버퍼: 활성화 + 메타데이터(X, S_X, Z_X). 가중치 버퍼: 가중치 + 스케일(W, S_W). 그룹별 가중치 합은 별도 뱅크에 둔다.</text>
+<text x="48" y="365" font-size="12" fill="#182532" font-weight="400" text-anchor="start">· FVU: 5단계 32-way FHT, 160개 add/sub 유닛. R을 최대 1024까지 지원하고 2/4/8/16/32의 작은 2의 거듭제곱도 부분 게이팅으로 처리한다.</text>
+<text x="48" y="384" font-size="12" fill="#182532" font-weight="400" text-anchor="start">· HAP 치환은 가중치에 미리 합쳐지므로 실행 중 추가 연산이 없다.</text>
+<text x="30" y="452" font-size="15" fill="#102a43" font-weight="750" text-anchor="start">논문 Table VIII(12쪽) — 주요 구성 요소의 면적·전력 (28nm, 1GHz, 합성·시뮬레이션)</text>
+<rect x="30" y="466" width="260" height="30" rx="0" fill="#102a43" stroke="none" stroke-width="1"/>
+<rect x="290" y="466" width="200" height="30" rx="0" fill="#102a43" stroke="none" stroke-width="1"/>
+<rect x="490" y="466" width="200" height="30" rx="0" fill="#102a43" stroke="none" stroke-width="1"/>
+<text x="42" y="486" font-size="12" fill="#ffffff" font-weight="750" text-anchor="start">구성 요소</text>
+<text x="302" y="486" font-size="12" fill="#ffffff" font-weight="750" text-anchor="start">면적 비중</text>
+<text x="502" y="486" font-size="12" fill="#ffffff" font-weight="750" text-anchor="start">전력 비중</text>
+<rect x="30" y="496" width="660" height="20" rx="0" fill="#ffffff" stroke="none" stroke-width="1"/>
+<text x="42" y="511" font-size="11" fill="#182532" font-weight="400" text-anchor="start">텐서 PE</text>
+<text x="302" y="511" font-size="11" fill="#5f7183" font-weight="400" text-anchor="start">12.4%</text>
+<text x="502" y="511" font-size="11" fill="#5f7183" font-weight="400" text-anchor="start">55.4%</text>
+<rect x="30" y="516" width="660" height="20" rx="0" fill="#f4f7fb" stroke="none" stroke-width="1"/>
+<text x="42" y="531" font-size="11" fill="#182532" font-weight="400" text-anchor="start">역양자화·누산</text>
+<text x="302" y="531" font-size="11" fill="#5f7183" font-weight="400" text-anchor="start">4.2%</text>
+<text x="502" y="531" font-size="11" fill="#5f7183" font-weight="400" text-anchor="start">16.0%</text>
+<rect x="30" y="536" width="660" height="20" rx="0" fill="#ffffff" stroke="none" stroke-width="1"/>
+<text x="42" y="551" font-size="11" fill="#182532" font-weight="400" text-anchor="start">W_SUM 유닛</text>
+<text x="302" y="551" font-size="11" fill="#5f7183" font-weight="400" text-anchor="start">0.5%</text>
+<text x="502" y="551" font-size="11" fill="#5f7183" font-weight="400" text-anchor="start">2.3%</text>
+<rect x="30" y="556" width="660" height="20" rx="0" fill="#f4f7fb" stroke="none" stroke-width="1"/>
+<text x="42" y="571" font-size="11" fill="#182532" font-weight="400" text-anchor="start">전역 버퍼 512KB</text>
+<text x="302" y="571" font-size="11" fill="#5f7183" font-weight="400" text-anchor="start">57.1%</text>
+<text x="502" y="571" font-size="11" fill="#5f7183" font-weight="400" text-anchor="start">5.6%</text>
+<rect x="30" y="576" width="660" height="20" rx="0" fill="#ffffff" stroke="none" stroke-width="1"/>
+<text x="42" y="591" font-size="11" fill="#182532" font-weight="400" text-anchor="start">FVU (회전·벡터)</text>
+<text x="302" y="591" font-size="11" fill="#5f7183" font-weight="400" text-anchor="start">3.5%</text>
+<text x="502" y="591" font-size="11" fill="#5f7183" font-weight="400" text-anchor="start">0.9%</text>
+<rect x="30" y="596" width="660" height="20" rx="0" fill="#f4f7fb" stroke="none" stroke-width="1"/>
+<text x="42" y="611" font-size="11" fill="#182532" font-weight="400" text-anchor="start">합계</text>
+<text x="302" y="611" font-size="11" fill="#5f7183" font-weight="400" text-anchor="start">2.10 mm²</text>
+<text x="502" y="611" font-size="11" fill="#5f7183" font-weight="400" text-anchor="start">740.95 mW</text>
+<rect x="30" y="466" width="660" height="150" rx="0" fill="none" stroke="#d9e2ec" stroke-width="1"/>
+<text x="30" y="632" font-size="11" fill="#5f7183" font-weight="400" text-anchor="start">표 VIII 원문은 회전·벡터 유닛 행을 'OVU'로 표기하지만 본문은 FVU라고 부른다. 입력·가중치 버퍼 행은 원문 표를 참조.</text>
+</svg>

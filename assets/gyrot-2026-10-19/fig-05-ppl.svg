@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 560" width="1000" height="560" role="img" aria-labelledby="t d" font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Malgun Gothic',sans-serif">
+<title id="t">LLaMA-2-7B PPL 비교</title>
+<desc id="d">논문 Table I의 LLaMA-2-7B W4A4KV4 PPL 수치를 재구성한 막대 차트</desc>
+<rect width="1000" height="560" fill="#ffffff"/>
+<text x="30" y="42" font-size="22" fill="#102a43" font-weight="750" text-anchor="start">LLaMA-2-7B, W4A4KV4 PPL (WikiText-2, 낮을수록 좋음)</text>
+<text x="30" y="66" font-size="12" fill="#5f7183" font-weight="400" text-anchor="start">논문 Table I(10쪽) 수치를 독자적으로 재구성한 차트 (원문 이미지 아님)</text>
+<line x1="311.8181818181821" y1="110" x2="311.8181818181821" y2="488" stroke="#d9e2ec" stroke-width="1"/>
+<text x="311.8181818181821" y="498" font-size="11" fill="#5f7183" font-weight="400" text-anchor="middle">5.4</text>
+<line x1="435.45454545454527" y1="110" x2="435.45454545454527" y2="488" stroke="#d9e2ec" stroke-width="1"/>
+<text x="435.45454545454527" y="498" font-size="11" fill="#5f7183" font-weight="400" text-anchor="middle">5.6</text>
+<line x1="559.090909090909" y1="110" x2="559.090909090909" y2="488" stroke="#d9e2ec" stroke-width="1"/>
+<text x="559.090909090909" y="498" font-size="11" fill="#5f7183" font-weight="400" text-anchor="middle">5.8</text>
+<line x1="682.7272727272726" y1="110" x2="682.7272727272726" y2="488" stroke="#d9e2ec" stroke-width="1"/>
+<text x="682.7272727272726" y="498" font-size="11" fill="#5f7183" font-weight="400" text-anchor="middle">6.0</text>
+<line x1="806.3636363636364" y1="110" x2="806.3636363636364" y2="488" stroke="#d9e2ec" stroke-width="1"/>
+<text x="806.3636363636364" y="498" font-size="11" fill="#5f7183" font-weight="400" text-anchor="middle">6.2</text>
+<line x1="930.0" y1="110" x2="930.0" y2="488" stroke="#d9e2ec" stroke-width="1"/>
+<text x="930.0" y="498" font-size="11" fill="#5f7183" font-weight="400" text-anchor="middle">6.4</text>
+<text x="236" y="132.0" font-size="13" fill="#182532" font-weight="400" text-anchor="end">FP16 (참조)</text>
+<rect x="250" y="110" width="105.09090909090901" height="34" rx="4" fill="#94a3b8" stroke="none" stroke-width="1"/>
+<text x="363.090909090909" y="132.0" font-size="12" fill="#182532" font-weight="750" text-anchor="start">5.47</text>
+<text x="236" y="180.0" font-size="13" fill="#182532" font-weight="750" text-anchor="end">GyRot-FP</text>
+<rect x="250" y="158" width="228.7272727272727" height="34" rx="4" fill="#0f766e" stroke="none" stroke-width="1"/>
+<text x="486.7272727272727" y="180.0" font-size="12" fill="#182532" font-weight="750" text-anchor="start">5.67</text>
+<text x="236" y="228.0" font-size="13" fill="#182532" font-weight="400" text-anchor="end">LightRot</text>
+<rect x="250" y="206" width="265.8181818181821" height="34" rx="4" fill="#cbd5e1" stroke="none" stroke-width="1"/>
+<text x="523.8181818181821" y="228.0" font-size="12" fill="#182532" font-weight="750" text-anchor="start">5.73</text>
+<text x="236" y="276.0" font-size="13" fill="#182532" font-weight="750" text-anchor="end">GyRot-INT</text>
+<rect x="250" y="254" width="358.5454545454545" height="34" rx="4" fill="#0f766e" stroke="none" stroke-width="1"/>
+<text x="616.5454545454545" y="276.0" font-size="12" fill="#182532" font-weight="750" text-anchor="start">5.88</text>
+<text x="236" y="324.0" font-size="13" fill="#182532" font-weight="400" text-anchor="end">MANT</text>
+<rect x="250" y="302" width="383.27272727272714" height="34" rx="4" fill="#cbd5e1" stroke="none" stroke-width="1"/>
+<text x="641.2727272727271" y="324.0" font-size="12" fill="#182532" font-weight="750" text-anchor="start">5.92</text>
+<text x="236" y="372.0" font-size="13" fill="#182532" font-weight="400" text-anchor="end">SpinQuant</text>
+<rect x="250" y="350" width="407.9999999999999" height="34" rx="4" fill="#cbd5e1" stroke="none" stroke-width="1"/>
+<text x="665.9999999999999" y="372.0" font-size="12" fill="#182532" font-weight="750" text-anchor="start">5.96</text>
+<text x="236" y="420.0" font-size="13" fill="#182532" font-weight="400" text-anchor="end">DuQuant</text>
+<rect x="250" y="398" width="482.18181818181813" height="34" rx="4" fill="#cbd5e1" stroke="none" stroke-width="1"/>
+<text x="740.1818181818181" y="420.0" font-size="12" fill="#182532" font-weight="750" text-anchor="start">6.08</text>
+<text x="236" y="468.0" font-size="13" fill="#182532" font-weight="400" text-anchor="end">Quarot</text>
+<rect x="250" y="446" width="587.2727272727271" height="34" rx="4" fill="#cbd5e1" stroke="none" stroke-width="1"/>
+<text x="845.2727272727271" y="468.0" font-size="12" fill="#182532" font-weight="750" text-anchor="start">6.25</text>
+<text x="30" y="520" font-size="12" fill="#b42318" font-weight="750" text-anchor="start">GyRot-FP와 GyRot-INT는 각각 FP16·INT8 스케일/0점 설정이다. Tender의 W4A4 PPL은 36.47로 축을 크게 벗어나 차트에 넣지 않았다.</text>
+<text x="30" y="540" font-size="12" fill="#5f7183" font-weight="400" text-anchor="start">같은 표에서 LLaMA-1-7B/13B와 LLaMA-2-13B의 GyRot-INT PPL은 5.89/5.22/5.03이다.</text>
+</svg>
