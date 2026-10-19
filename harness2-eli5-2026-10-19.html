@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Harness² 쉬운 설명 — 모델은 두고 '일하는 틀'만 고치는 에이전트</title>
-  <meta name="description" content="구글 리서치 Harness²(하네스 제곱)를 처음 보는 사람을 위해, 원문의 그림과 표를 곁들여 쉬운 한국어로 정리한 설명 페이지입니다.">
+  <meta name="description" content="구글 리서치 Harness²(하네스스퀘어)를 처음 보는 사람을 위해, 원문의 그림과 표를 곁들여 쉬운 한국어로 정리한 설명 페이지입니다. 클론한 저장소를 참고해 자기 OpenCode 프로젝트의 하네스를 개선하는 방법 절(소스 지도·실전 예제·자동화 설계)을 더했습니다.">
   <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjE4IiBmaWxsPSIjMWY3YThjIi8+PHRleHQgeD0iNTAiIHk9IjcyIiBmb250LXNpemU9IjYwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZmZmZmZmIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjcwMCI+SDwvdGV4dD48L3N2Zz4=">
   <style>
     :root {
@@ -137,6 +137,8 @@
     footer .wrap, .attribution { color: var(--muted); }
     .attribution { padding: 18px 0 0; }
     @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+    .copy-btn { border: 1px solid var(--accent); border-radius: 6px; padding: 7px 12px; background: var(--soft); color: var(--accent-dark); cursor: pointer; font: inherit; font-size: 13px; }
+    .copy-status { color: var(--muted); font-size: 13px; margin-left: 8px; }
   </style>
 </head>
 <body>
@@ -145,9 +147,9 @@
   <header class="top">
     <div class="wrap">
       <p class="eyebrow">ELI5 · AI 에이전트 하네스</p>
-      <h1>하네스²(Harness²) 처음 보는 사람을 위한 설명</h1>
+      <h1>하네스스퀘어(Harness²) 처음 보는 사람을 위한 설명</h1>
       <p class="lead">모델의 가중치는 그대로 두고, 모델을 둘러싼 '일하는 틀(하네스)'만 스스로 고쳐 성과를 끌어올리는 구글 리서치의 오픈소스 프레임워크를 처음 보는 사람 눈높이로 정리했습니다.</p>
-      <p class="byline">원문 확인: 2026-10-19 (KST) · 원본 저장소 HEAD <code>1cfe254</code> · 논문 arXiv:2610.14224 (2026-10-09)</p>
+      <p class="byline">원문 확인: 2026-10-19 (KST) · 갱신: 2026-10-20 (KST) · 원본 저장소 HEAD <code>1cfe254</code> · 논문 arXiv:2610.14224 (2026-10-09)</p>
     </div>
   </header>
 
@@ -156,14 +158,14 @@
       <img src="assets/harness2-eli5/Harness2-wordmark.png" width="2172" height="724"
            alt="Harness² 워드마크. 부제는 'Recursive Agent Harnessing for an Open World'.">
       <figcaption>
-        <span class="cap-title">Harness² (하네스 제곱)</span>
+        <span class="cap-title">Harness² (하네스스퀘어)</span>
         <span class="cap-src">이미지 출처: google-research/harness2 <code>assets/Harness2-wordmark.png</code> (Apache-2.0). 이 페이지용으로 <code>docs/assets/harness2-eli5/</code>에 보존했습니다.</span>
       </figcaption>
     </figure>
 
     <section class="summary" aria-labelledby="sum-h">
       <h2 id="sum-h" style="margin-top:0;font-size:19px;">한 줄 요약</h2>
-      <p>Harness²(하네스 제곱)는 구글 리서치(google-research)가 공개한 오픈소스 프레임워크다. 이 프레임워크가 하는 일은, AI 모델의 가중치는 그대로 둔 채 모델을 둘러싼 '일하는 틀'만 스스로 고쳐 에이전트의 성과를 끌어올리는 것이다. 사람에 비유하면 이렇다. 신입 사원의 머리(재능)는 손대지 않는다. 대신 책상 위의 체크리스트와 매뉴얼, 쓰는 도구를 계속 바꿔 준다.</p>
+      <p>Harness²(하네스스퀘어)는 구글 리서치(google-research)가 공개한 오픈소스 프레임워크다. 이 프레임워크가 하는 일은, AI 모델의 가중치는 그대로 둔 채 모델을 둘러싼 '일하는 틀'만 스스로 고쳐 에이전트의 성과를 끌어올리는 것이다. 사람에 비유하면 이렇다. 신입 사원의 머리(재능)는 손대지 않는다. 대신 책상 위의 체크리스트와 매뉴얼, 쓰는 도구를 계속 바꿔 준다.</p>
       <p class="fig-hint">그림은 페이지 폭에 맞춰 줄여 보여 줍니다. 그림 속 글씨와 표의 세부 값은 각 그림·표 아래의 <strong>‘원본 크기로 보기’</strong> 링크로 확대해 확인할 수 있습니다.</p>
     </section>
 
@@ -182,6 +184,9 @@
         <li><a href="#s10">무엇을 못 하나 — 한계</a></li>
         <li><a href="#s11">설치와 체험 (GIF)</a></li>
         <li><a href="#s12">핵심 용어 한 줄 풀이</a></li>
+        <li><a href="#s13">저장소 소스 지도와 파일 대응</a></li>
+        <li><a href="#s14">실전 예제 — 편집 전 규칙 검토 부실 고치기</a></li>
+        <li><a href="#s15">자동화를 원한다면 — 어댑터 설계와 위임 프롬프트</a></li>
       </ol>
     </nav>
 
@@ -351,7 +356,7 @@
 source .venv/bin/activate
 uv pip install -e '.[render]'
 harness2-demo --output runs/demo --k 2</code></pre>
-      <p>harness2-demo는 모델 자격 증명 없이 돌아간다. 결정적 편집기와 실제 파이썬 실행으로 두 재귀 모드를 모두 체험하게 해 준다. 모델을 실제로 부르는 벤치마크는 Vertex AI 자격 증명과 추가 의존성(Node.js 20+, gcloud CLI, 벤치마크별 도구)이 필요하다.</p>
+      <p>harness2-demo는 모델 자격 증명 없이 돌아간다. 결정적 편집기와 실제 파이썬 실행으로 두 재귀 모드를 모두 체험하게 해 준다. 모델을 실제로 부르는 벤치마크는 Vertex AI 자격 증명과 추가 의존성(Node.js 20+, gcloud CLI, 벤치마크별 도구)이 필요하다. 이 저장소를 설치 없이 <strong>내 OpenCode 프로젝트 하네스 개선 설계에 쓰는 방법</strong>은 <a href="#s13">13절</a>부터 이어진다.</p>
 
       <figure>
         <img src="assets/harness2-eli5/harness2-setup.gif" width="2560" height="256"
@@ -375,10 +380,240 @@ harness2-demo --output runs/demo --k 2</code></pre>
       <p class="term"><b>대비(contrastive) 근거</b>: 채점표 없이, 실행들 사이의 차이에서 얻는 근거.</p>
     </section>
 
+    <section id="s13" aria-labelledby="s13h">
+      <h2 id="s13h">13. 클론한 저장소를 내 프로젝트 개선 설계에 쓰기 — 소스 지도</h2>
+      <p>상황을 하나로 묶는다. 내 OpenCode 프로젝트에는 이미 <code>AGENTS.md</code>, <code>.opencode/skills</code>, <code>.opencode/agents</code>, <code>scripts</code>가 있다. 이 저장소(고정 커밋 <code>1cfe254</code>)의 클론을 옆에 두고 읽으면, 내 프로젝트 파일을 무엇을 참고해 고쳐야 하는지 근거가 생긴다. 13절은 지도, 14절은 예제, 15절은 자동화 설계다.</p>
+
+      <p>버전을 섞지 않는 것도 중요하다. Harness²의 고정 커밋은 자체 OpenCode 실행기(v1.14.18)를 사용한다. 아래의 개인 프로젝트 파일 대응은 <strong>OpenCode V2 공식 문서</strong>를 기준으로 한 적용 설계이며, 두 실행 환경을 그대로 호환된다고 가정하지 않는다. 기존 OpenCode 버전과 설정을 먼저 확인하고 파일명·권한 형식을 맞춘다.</p>
+      <h3>이 저장소가 내 프로젝트에 안 해 주는 것부터</h3>
+      <p>기대를 정확히 맞추는 게 먼저다. 공식 CLI는 벤치마크 세 개만 받는다. <code>harness2/cli/_common.py</code>에 <code>BENCHES = ("jb", "wb", "lab")</code>로 정해져 있다. 내 리포지터리를 넘겨 알아서 개선해 주는 <code>--project</code>·<code>--task</code> 같은 플래그는 없고, 설치해서 쓰는 개인 프로젝트 자동 개선 플러그인도 이 저장소가 제공하지 않는다. 그래서 활용은 세 가지가 된다.</p>
+      <ol>
+        <li><strong>참고판으로 쓰기.</strong> 편집면 구성, 상시 파일 예산, 스킬·서브에이전트·스크립트 구성, 제안–시험–종합 절차를 소스에서 읽어 내 프로젝트에 적용한다(14절).</li>
+        <li><strong>절차 대리 적용.</strong> 에이전트에게 클론 소스 모듈을 읽게 하고, 그 절차를 내 프로젝트 규모로 이행시킨다. 이는 공식 벤치마크 엔진이 아니라 에이전트가 수행하는 적용이다(15절).</li>
+        <li><strong>엔진화.</strong> 저장소의 공개 인터페이스에 내 프로젝트 어댑터를 맞추는 설계(15절 후반). 실행 중인 코드가 아니라 설계 초안이다.</li>
+      </ol>
+
+      <h3>소스 지도 — 읽을 파일과 그 자리</h3>
+      <p>패키지는 세 축으로 나뉜다. 방식(core), 실행기(substrate), 벤치마크(benchmarks). <code>core/spec.py</code> 머리 주석이 "Three axes stay separate"라고 경계를 잡아 준다 — 방식(method), 실행기(substrate), 벤치마크(benchmark) 세 축이 분리돼 있다는 뜻이다. 참고 용도로 읽을 파일은 다음과 같다(링크는 모두 고정 커밋 permalink다).</p>
+      <ul>
+        <li><a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/README.md" target="_blank" rel="noopener"><code>README.md</code></a> — 컴포넌트 여덟, 제안–시험–종합의 정의.</li>
+        <li><a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/harness2/core/tree.py" target="_blank" rel="noopener"><code>harness2/core/tree.py</code></a> — 편집면(edited surface)의 스키마와 검증. 머리 주석의 계약문은 "omitted-is-inherited: a proposal emits only what it changes"다. 수정안은 바뀐 부분만 남긴다.</li>
+        <li><a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/harness2/substrate/opencode.py" target="_blank" rel="noopener"><code>harness2/substrate/opencode.py</code></a> — OpenCode용 편집면 값. 상시 파일 넷과 상한 24,000자, 스킬 트리거·서브에이전트·스크립트·플러그인 관행이 스텁 주석으로 적혀 있다.</li>
+        <li><a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/harness2/core/prompts.py" target="_blank" rel="noopener"><code>harness2/core/prompts.py</code></a> — 제안·시험·종합 단계 프롬프트의 원형. 주석에 "No prompt here names a rubric, a score or a judge"라는 문장이 있다. 개선 요청 프롬프트를 쓸 때 이 문체가 기준이 된다.</li>
+        <li><a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/harness2/core/library.py" target="_blank" rel="noopener"><code>harness2/core/library.py</code></a> — 채택 하네스와 교훈의 저장 모양(<code>EXPERIENCE.md</code>, "why picked + lesson"). 내 교훈 파일의 설계 기준이 된다.</li>
+        <li><a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/harness2/demo.py" target="_blank" rel="noopener"><code>harness2/demo.py</code></a> — 실제 워크플로를 표준 라이브러리만으로 축소 재현한 참고 구현. 실행 권고가 아니라 구조 예시로 읽을 소스다.</li>
+      </ul>
+
+      <h3>파일 대응 — 편집면 이름과 내 OpenCode 프로젝트의 실제 자리</h3>
+      <p>주의점 하나. 상시 파일 넷(<code>systemprompt.md</code>, <code>guardrails.md</code>, <code>LongTermMEMORY.md</code>, <code>tool_descriptions/tool_guidance.md</code>)은 <strong>Harness² 편집면의 원천 파일명이며</strong>, 일반 OpenCode가 자동으로 찾아 읽는 파일이 아니다. 일반 OpenCode가 자동으로 읽는 것은 <code>AGENTS.md</code>와 <code>.opencode/</code> 아래 구성·스킬·에이전트다(공식 문서: <a href="https://opencode.ai/v2/docs/instructions/" target="_blank" rel="noopener">Instructions</a>). 그러니 이 네 이름 그대로 파일을 만들어 두어도 읽히지 않는다. 대응은 역할을 내 프로젝트의 어디에 둘지 정하는 작업이다.</p>
+
+      <div class="table-wrap" role="region" tabindex="0" aria-label="표 3. 편집면 파일 대응">
+        <table>
+          <caption>표 3. 편집면 파일 ↔ 일반 OpenCode 프로젝트 대응 (편집면 값은 <code>core/tree.py</code>·<code>substrate/opencode.py</code>, 프로젝트 쪽은 공식 OpenCode V2 문서 기준)</caption>
+          <thead>
+            <tr><th scope="col">Harness² 편집면</th><th scope="col">역할</th><th scope="col">내 프로젝트에 둘 자리</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>systemprompt.md</code></td><td>기본 지시</td><td><code>AGENTS.md</code> (자동 적재)</td></tr>
+            <tr><td><code>guardrails.md</code></td><td>금지·필수 규칙</td><td><code>AGENTS.md</code>의 규칙 문단(V2의 <code>instructions</code> 파일 참조는 아직 적용되지 않음)</td></tr>
+            <tr><td><code>LongTermMEMORY.md</code></td><td>오래 갈 메모</td><td>프로젝트 노트 파일, <code>AGENTS.md</code>에서 가리킴</td></tr>
+            <tr><td><code>tool_descriptions/tool_guidance.md</code></td><td>도구 쓰는 법</td><td><code>AGENTS.md</code> 도구 문단 + 절차가 길어지면 스킬로</td></tr>
+            <tr><td><code>skills/&lt;name&gt;/SKILL.md</code> (필요할 때 <code>skill</code> 도구)</td><td>재사용 절차</td><td><code>.opencode/skills/&lt;id&gt;/SKILL.md</code> (공식 위치, <a href="https://opencode.ai/v2/docs/skills/" target="_blank" rel="noopener">Skills</a>)</td></tr>
+            <tr><td><code>sub_agents/&lt;name&gt;/AGENT.md</code> (<code>mode: subagent</code>)</td><td>위임 요원</td><td><code>.opencode/agents/&lt;name&gt;.md</code> (<code>mode: subagent</code>, <a href="https://opencode.ai/v2/docs/agents/" target="_blank" rel="noopener">Agents</a>)</td></tr>
+            <tr><td><code>scripts/&lt;name&gt;.py</code> (<code>python3</code> 실행)</td><td>결정적 보조</td><td><code>scripts/</code></td></tr>
+            <tr><td><code>plugin/&lt;name&gt;.ts</code> (도구 루프 강제)</td><td>강제 장치</td><td>공식 permissions 설정(<a href="https://opencode.ai/v2/docs/permissions/" target="_blank" rel="noopener">Permissions</a>) 또는 공식 plugins 설정</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>마지막 행은 성격이 다르다. 위의 대부분은 지시문이라 모델이 읽고 지켜 줘야 효력이 있는 문장이고, permissions는 클라이언트가 실제로 통과·차단을 결정하는 규칙이다(allow·deny·ask, 맞는 규칙이 없으면 ask). 지시문을 추가한다고 강제가 되지는 않는다. 강제가 필요한 동작은 permissions나 plugin으로 별도 검토해야 한다.</p>
+    </section>
+
+    <section id="s14" aria-labelledby="s14h">
+      <h2 id="s14h">14. 실전 예제 — '규칙 검토 없이 편집부터' 하는 에이전트 고치기</h2>
+      <p>한 가지 상황을 정해 두고 끝까지 따라가 본다. <strong>이 절은 실행 기록이 없는 작성된 예제다.</strong> 명령·파일·프롬프트는 복사해 쓸 수 있는 모양이지만 실제 실행 결과나 성능 수치는 언급하지 않는다.</p>
+
+      <h3>준비 — 저장소는 참고용으로 옆에 둔다</h3>
+      <p>예시는 <code>work/harness2/</code>와 <code>work/my-project/</code>가 나란히 있는 구조다. 이미 클론이 있다면 다시 받을 필요 없다. 별도 설치나 벤치마크 실행 대신 소스만 읽는다. 아래 명령은 독자가 사용할 준비 예시이며 이 글의 실행 기록이 아니다.</p>
+      <pre><code># work/에서: 이미 harness2/가 있다면 이 단계는 생략
+ git clone https://github.com/google-research/harness2.git
+ git -C harness2 checkout 1cfe254e8d25b15f37048c3730134686abe60335
+ cd my-project
+ # 여기에서 OpenCode를 열고 아래 프롬프트를 붙여 넣는다.</code></pre>
+      <p>형제 경로 <code>../harness2</code> 읽기에 별도 승인이 필요하면 그 저장소만 읽기 허용한다. 개인 프로젝트나 전역 설정의 권한을 통째로 열지 않는다.</p>
+      <h3>가정한 프로젝트와 관찰된 문제</h3>
+      <pre><code>my-project/
+  AGENTS.md            # 기존 프로젝트 지시
+  CONVENTIONS.md       # 규칙 문서
+  scripts/
+    test.sh            # 검증 스크립트
+  .opencode/
+    skills/
+      pr-describe/SKILL.md
+    agents/
+      reviewer.md</code></pre>
+      <p>기존 <code>AGENTS.md</code>의 예시(개선 대상):</p>
+      <pre><code># my-project 지침
+- Python 3.12. 커밋 전 scripts/test.sh 결과를 달라.</code></pre>
+      <p>현재 에이전트에서 반복되는 관찰은 세 개다. 측정값이 아니라 사용자가 눈으로 본 습관이다.</p>
+      <ol>
+        <li>파일을 고치기 전에 <code>CONVENTIONS.md</code>나 관련 코드를 먼저 확인하지 않는다. 규칙에 어긋나는 결과가 나오고, 사람이 걸러내는 작업이 반복된다.</li>
+        <li>수정 후 <code>scripts/test.sh</code> 실행을 잊는다.</li>
+        <li>도구 출력이 길면 전체 원문을 산출물에 그대로 넣는다.</li>
+      </ol>
+
+      <h3>1단계 — 제안을 먼저 요청한다(실행 금지 프롬프트)</h3>
+      <p>절차의 첫 단계는 제안이다. 에이전트에게 "고쳐라"가 아니라 "제안해 보라"고 말한다. 복사용 프롬프트:</p>
+      <pre><code>지금부터 수정·실행은 하지 마라. 아래를 읽고 제안만 산출하라.
+
+참고 원문 — 이 순서로 읽을 것:
+- ../harness2/README.md  (컴포넌트 1~8)
+- ../harness2/harness2/core/tree.py  (편집면 스키마, 'omitted-is-inherited' 계약)
+- ../harness2/harness2/substrate/opencode.py  (상시 텍스트 예산, 스킬·서브에이전트·스크립트 관행)
+- ./AGENTS.md, ./CONVENTIONS.md, .opencode/skills/, .opencode/agents/, scripts/
+
+관찰된 문제:
+1. 파일 편집 전 규칙 문서와 관련 코드 확인을 건너뛴다.
+2. 수정 후 scripts/test.sh 실행을 잊는다.
+3. 도구 출력이 길면 전체 원문을 산출물에 그대로 넣는다.
+
+제안 내용(정확히 이 4개):
+A. INV 후보 1건 — 특정 경로·스크립트에 의존하지 않는 범용 문장. unified diff 형식.
+B. DOM 후보 1건 — 이 저장소 전용(경로·파일명·기존 문서 지점을 명시). unified diff 또는 새 파일 전문.
+C. 각 후보가 문제 1~3 중 무엇을 겨냥하는지, 그리고 바뀐 조각별로 어떤 결과가 달라지는지 적어라.
+D. 시험 계획 — 한 과제를 원본/후보 하네스로 각각 돌려 행동 차이를 관찰하는 절차. 과제 반복 횟수는 고정한다.
+
+제한:
+- AGENTS.md의 기존 문단은 지우지 말고 추가만 하라.
+- 이번 예제의 상시 지시 텍스트는 24,000자 이하를 목표로 하라. Harness² 편집면의 예산을 빌린
+  설계 기준이며, 일반 OpenCode 전체 컨텍스트의 고정 상한이라는 뜻은 아니다.
+- 실행 강제(권한·플러그인)가 필요한 변경은 지시문에 섞지 말고 별도 목록으로 알려 주라.</code></pre>
+      <p>이 프롬프트 문체의 뿌리는 <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/harness2/core/prompts.py" target="_blank" rel="noopener"><code>core/prompts.py</code></a>다. 편집면의 구조를 그대로 두고, INV/DOM 두 범위로 제안을 나눠 각각 근거를 요구한다.</p>
+
+      <h3>2단계 — 나올 법한 INV/DOM 후보 예</h3>
+      <p>아래는 결과물이 아니라, 절차를 지나면 나올 법한 형태를 미리 보여 둔 예시다.</p>
+      <p><strong>INV 후보(범용)</strong> — 어느 저장소에도 통하는 작업 순서 문단. <code>AGENTS.md</code> 끝에 세 줄 추가:</p>
+      <pre><code>--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -1,2 +1,6 @@
+ # my-project 지침
+ - Python 3.12. 커밋 전 scripts/test.sh 결과를 달라.
++## 공통 작업 순서
++- 파일을 고치기 전에 기능과 연관된 규칙 문서와 주변 코드를 먼저 읽어 무엇이 이미 규칙인지 정리한다.
++- 코드를 고쳤다면 이 저장소의 지정 검증 방법을 찾아 실행한 뒤 그 결과를 먼저 보고한다.
++- 도구 출력이 100줄을 넘으면 전체를 직접 붙이지 말고 파일로 저장한 뒤 핵심만 옮겨 적는다.</code></pre>
+      <p><strong>DOM 후보(이 저장소 전용)</strong> — 새 스킬 파일과 그 스킬을 묶는 한 줄. 일반 OpenCode의 스킬은 frontmatter를 붙인 <code>.opencode/skills/&lt;id&gt;/SKILL.md</code>로 만든다(공식 <a href="https://opencode.ai/v2/docs/skills/" target="_blank" rel="noopener">Skills 문서</a> 기준, <code>description</code>은 모델이 스킬을 발견하는 근거가 된다):</p>
+      <pre><code>--- /dev/null
++++ b/.opencode/skills/fix-with-checks/SKILL.md
+@@ -0,0 +1,7 @@
++---
++name: fix-with-checks
++description: 코드 수정 작업을 시작할 때 쓴다. 규칙 문서 검토 → 수정 → scripts/test.sh 검증 순서로 진행한다.
++---
++1. 고치려는 파일과 연관된 CONVENTIONS.md 문단을 먼저 읽는다.
++2. 수정 후 `bash scripts/test.sh`를 실행해 결과를 보고한다. 실패하면 원인을 확인하고 수정으로 돌아간다.
++3. 최종 보고에는 바뀐 파일 목록과 테스트 결과만 남긴다. 도구 출력 원문은 붙이지 않는다.</code></pre>
+      <p>위 diff는 설명용 예제이므로 실제 파일 문맥에 맞춰 수정하고 검토한다. 특히 <code>test.sh</code>는 셸 스크립트라 <code>bash scripts/test.sh</code>로 호출한다. 테스트 누락을 지적하는 예시가 잘못된 실행 명령을 새로 만들면 개선이 아니다.</p>
+      <p>스킬을 문제 상황에 묶는 문장은 <code>AGENTS.md</code>에 더한다. "코드 수정 작업이면 fix-with-checks 스킬을 써라." 스킬 파일은 요청됐을 때 로드되므로 이름을 명시해 주는 게 실용적이다. 서브에이전트는 이 예제에서 쓰지 않는다. 잡을 문제가 위임할 규모가 아니기 때문이다.</p>
+
+      <h3>3단계 — 같은 과제, 같은 조건으로 비교하는 설계</h3>
+      <p>후보가 보여 주는 차이는 실제 과제 하나를 건네 돌려 봐야 눈에 들어온다. 규칙은 세 개다.</p>
+      <ul>
+        <li><strong>과제 고정.</strong> 백로그 이슈 하나(예: "파서에 경계값 오류 처리 추가")를 정해, 원본/후보 모두 같은 지시문 한 줄로 건네준다.</li>
+        <li><strong>자원 고정.</strong> 모델, 세션 생성 방식, 반복 횟수(예: 각 3회)를 동일하게 둔다. 바뀌는 것은 하네스뿐이어야 한다.</li>
+        <li><strong>관찰은 채점이 아니다.</strong> Harness²는 채점표(rubric)를 프롬프트에 넣지 않는다 — <code>core/prompts.py</code> 주석의 "No prompt here names a rubric, a score or a judge". 여기서도 정답 점수를 붙이지 않고 관찰 세 가지로 행동 차이만 기록한다. 첫 도구 사용이 문서 열림이 아니라 편집인지, <code>test.sh</code> 실행 여부, 보고서의 원문 덤프 유무.</li>
+      </ul>
+      <p>각 비교는 같은 시작 커밋의 별도 worktree와 새 세션에서 수행하도록 계획한다. 원본에서 생성한 코드·대화 기록이 후보 실행에 섞이지 않게 하고, 모델·시간/턴 예산·입력·반복 횟수를 고정한다. 비교 실행 자체는 사용자 승인 뒤에만 한다. 상태 전환은 git으로 한다. 개선 전의 원본은 <code>git worktree add ../probe-base</code>로 띄우고, INV/DOM 후보는 각자 브랜치에 적용해 둔다. 각 실행의 행동 차이를 표로 적어 두는 곳이 기록이고, 점수 기록이 아니다. Harness²는 이 비교에 더해 실행 자동화와 라이브러리 저장까지 맡지만, 이 예제에서는 그 자리의 일을 사람이 한다.</p>
+
+      <h3>4단계 — 종합·채택과 안전 적용</h3>
+      <p>시험 관찰에서 근거가 보인 변경만 남긴다(종합·채택). 채택 기준은 미리 정해 둔다. 첫째, 후보가 겨냥한 행동이 관찰 대비 다르게 나왔는가. 둘째, 규칙 문장이 기존 문단과 충돌하지 않는가. 셋째, 자동으로 읽히는 텍스트 총량이 용도에 맞게 유지되는가. 이 세 개를 통과한 변경만 적용한다:</p>
+      <pre><code>git switch -c harness/lesson-2026-10
+# AGENTS.md: 승인된 문장만 추가한다. 기존 문단을 지우는 병합은 하지 않는다.
+# .opencode/skills/fix-with-checks/SKILL.md: 새 파일로 추가한다.
+# 권한·플러그인 변경이 필요한 항목은 이번 범위에서 제외하고 별도 검토에 남긴다.
+git diff -- AGENTS.md
+# 새 파일은 git diff에 나오지 않으므로 별도로 전문을 검토한다.
+# 검토 후에만 두 파일을 명시적으로 stage한다.
+git add -- AGENTS.md .opencode/skills/fix-with-checks/SKILL.md
+git diff --cached -- AGENTS.md .opencode/skills/fix-with-checks/SKILL.md</code></pre>
+      <p>기존 파일을 자동 덮어쓰지 않는다. 넓은 권한 허가와 전역 설정(<code>~/.config/opencode</code>) 손대는 일 없이 브랜치 안에서만 변경을 본다. 롤백은 브랜치를 버리거나 해당 문단·파일을 부분 revert하는 것으로 끝난다.</p>
+
+      <h3>5단계 — 교훈 파일과 다음 과제</h3>
+      <p><code>core/library.py</code>의 저장 모양(채택 이유와 교훈, "why picked + lesson")을 축소해 프로젝트 문서에 남긴다:</p>
+      <pre><code>docs/harness-lessons.md
+---
+## 날짜 · 규칙 검토 없이 편집 시작
+- 관찰: ... (시험에서 본 행동 차이 요약)
+- 채택: 스킬 fix-with-checks + AGENTS.md 공통 작업 순서 문단
+- 남겨 둔 것: ... (이번에 확인하지 못한 항목)
+- 다음 검증: 새 백로그 이슈 하나에서 같은 관찰 세 가지를 비교하기</code></pre>
+      <p>다음 과제에서 이 교훈 파일과 채택된 하네스를 출발점으로 삼아 쓰는 것이 '교훈 라이브러리'의 수동 버전이다. 정답 판단은 별도의 독립 채점 없이는 미완이며, 여기의 채택은 행동 관찰에 근거할 뿐 정답성을 보장하지 않는다.</p>
+    </section>
+
+    <section id="s15" aria-labelledby="s15h">
+      <h2 id="s15h">15. 자동화를 원한다면 — 어댑터 설계와 위임 프롬프트</h2>
+      <p>공식 CLI는 벤치마크 세 개만 받는다(13절). 그래서 내 프로젝트에 대한 반복적 자동 개선은 두 갈래로 나뉜다. 첫째, 절차를 에이전트에게 대리로 적용시킨다(아래). 둘째, 저장소의 공개 어댑터 인터페이스에 내 프로젝트를 맞춰 엔진으로 돌린다(뒤쪽). 어느 쪽이든 저장소의 실제 인터페이스를 따르며 부재하는 기능을 만들어 내지 않는다.</p>
+
+      <h3>지금 당장: 클론 소스를 읽게 하는 위임 프롬프트</h3>
+      <p>어댑터 코드를 쓰기 전에 절차 수행을 에이전트에게 맡길 수 있다. Harness² 방식을 '에이전트 안내로 적용'하는 것으로, 공식 자동 엔진 실행과는 다르다. 복사용 프롬프트:</p>
+      <pre><code>역할: 하네스 개선 절차 안내자.
+참고 클론: ../harness2 (고정 커밋 1cfe254). 공식 자동 벤치마크 엔진이 아니라 네가 절차를 수행하는 대리 적용이다.
+대상: 현재 작업 디렉터리 my-project/ (AGENTS.md, .opencode/skills, .opencode/agents, scripts 있음)
+목표 문제: 파일 편집 전 규칙 문서 검토를 건너뛰는 습관.
+
+절차:
+1) ../harness2/harness2/core/tree.py와 ../harness2/harness2/substrate/opencode.py를 읽어
+   편집면 구성(상시 네 파일, 스킬·서브에이전트·스크립트·플러그인 구성, 상한 24,000자)을 요약해 보여라.
+   24,000자는 Harness² 편집면의 제약이며 일반 OpenCode의 전역 제한으로 일반화하지 마라.
+2) 현재 작업 디렉터리의 하네스 파일을 읽어 현재 상태 요약을 보여라.
+3) 제안(Propose): INV 후보 1건 + DOM 후보 1건.
+   tree.py의 'omitted-is-inherited' 계약을 따르고 unified diff로 제공하라.
+   후보마다 내가 관찰할 행동 차이 목표를 하나씩 적어라.
+4) 승인 요청: diff와 시험 계획(같은 과제, 같은 프롬프트, 같은 모델, 반복 횟수 고정)을 넘겨라.
+   승인 전에는 파일을 쓰지 않는다.
+5) 승인 후: 새 브랜치 harness/lesson-날짜에만 적용하라. 기존 AGENTS.md 문단을 지우지 마라.
+6) 비교 실행은 별도 승인을 받은 뒤에만 하라. 각 후보를 동일한 시작 코드의 격리된 사본과 새 세션에서
+   비교하고 원본/후보의 행동 차이를 관찰 목표에 대응해 적어라. 아직 실행하지 않았다면
+   관찰 결과 대신 미실행이라고 표시하라. 실행 성공·성능·정답성을 지어내지 마라.
+7) 채택 여부·이유·미검증 항목을 docs/harness-lessons.md에 문단으로 만들어라. 내가 승인한 문장만 이동한다.
+
+제한: 파일 쓰기는 5)의 브랜치에서만. 권한·플러그인 변경은 별도 제안으로만. 전역 설정(~/.config/opencode)은 건드리지 마라.</code></pre>
+
+      <h3>엔진으로 만들기: 공개 어댑터 연결 지점</h3>
+      <p>반복 자동화를 원하면 벤치마크 어댑터라는 연결점에 내 프로젝트를 맞추는 일이 남는다. 관련 실제 정의는 다음과 같다.</p>
+      <ul>
+        <li><a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/harness2/core/spec.py" target="_blank" rel="noopener"><code>core/spec.py</code></a> — <code>BenchmarkAdapter</code> 프로토콜. 어댑터가 만족해야 절차가 돈다: <code>tasks()</code>, <code>domain_of()</code>, <code>task_prompt()</code>, <code>execute()</code>, <code>delivered()</code>, <code>trajectory()</code>, <code>deliverable_text()</code>, <code>base_harness()</code>, <code>validate_tree()</code>, <code>score()</code> 등.</li>
+        <li><a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/harness2/substrate/base.py" target="_blank" rel="noopener"><code>substrate/base.py</code></a> — 어댑터가 공급하는 실행 장치형 <code>Launcher</code>: <code>Callable[[RunRequest, Install], list[Path]]</code>.</li>
+        <li><a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/harness2/benchmarks/jobbench.py" target="_blank" rel="noopener"><code>benchmarks/jobbench.py</code></a>와 <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/harness2/benchmarks/jb_opencode_runner.py" target="_blank" rel="noopener"><code>jb_opencode_runner.py</code></a> — 실제 어댑터와 그 OpenCode 러너. 검토 샘플로 보면 된다.</li>
+        <li><a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/harness2/core/schedule.py" target="_blank" rel="noopener"><code>core/schedule.py</code></a> — 실행 이름 공간(<code>&lt;bench&gt;-&lt;substrate&gt;-&lt;mode&gt;&lt;k&gt;</code>)과 과제 드라이버(한 과제, 한 도메인, 스윕). 결과 폴더 구분 계획의 근거다.</li>
+      </ul>
+      <p>설계 초안이다. 내 프로젝트 상황을 채워 넣어야 쓸 수 있고, 그대로 실행해 되는 코드가 아니다.</p>
+      <pre><code>class MyProjectAdapter:   # core/spec.py의 BenchmarkAdapter 프로토콜 구현 스케치
+    spec = BenchSpec(...)               # 시작 하네스, 프롬프트 슬롯, 산출 요구값을 담은 데이터
+    substrate = OpencodeSubstrate(launcher=my_launcher)
+
+    def tasks(self, split="all"):       # 내 백로그 이슈 목록. 순서는 고정으로 유지한다.
+        return ["issue-42", "issue-77"]
+    def domain_of(self, tid):           # 묶음 단위(예: "backend")
+        return "backend" if tid.startswith("issue-4") else "web"
+    def task_prompt(self, tid):         # 과제 지시문. 정답 기준·채점 요소는 제외한다.
+        return ISSUE_PROMPTS[tid]
+    def base_harness(self):             # 현재 프로젝트 파일을 편집면 트리 형태로 정규화한 사본
+        return Path("./my-base-harness")
+    def execute(self, tid, harness_dir, run_id, *, timeout=None):
+        # materialise()가 만든 하네스 사본으로 opencode run을 돌려 run dir을 반환한다.
+        ...
+    def delivered(self, run_dir): ...
+    def trajectory(self, run_dir, *, obs_trunc): ...
+    def deliverable_text(self, run_dir): ...
+    def score(self, run_dir, tid):      # 개선 근거와 구분한 별도 검증 채널
+        ...</code></pre>
+      <p><code>base_harness()</code>의 실제 작업은 13절 표 3의 대응표에 나와 있다. 기존 <code>AGENTS.md</code>·스킬·에이전트·스크립트를 편집면 파일명(<code>systemprompt.md</code>, <code>skills/&lt;name&gt;/SKILL.md</code> 등)의 트리 형태로 스테이징 사본을 만드는 정규화 단계다. 어댑터까지 가지 않더라도 14절의 수동 절차로 개선 루프를 돌릴 수 있다. 성과 비교는 실제 실행과 독립 판단이 있어야 성립하고, 채택이 정답성을 보장하지 않는다는 점은 9절에서 밝힌 경계와 같다.</p>
+    </section>
+
     <section class="note" aria-labelledby="fresh-h">
       <h2 id="fresh-h" style="margin-top:0;font-size:19px;">신선도와 출처</h2>
       <ul>
-        <li>확인 날짜: 2026-10-19(KST).</li>
+        <li>확인 날짜: 2026-10-19(KST). 갱신: 2026-10-20(KST) — 시각자료와 표를 그대로 두고 13~15절을 '클론한 저장소를 참고해 자기 OpenCode 프로젝트의 하네스를 개선하는 방법' 안내로 다시 썼다. 이 절들은 실행·벤치마크 재현 기록이 없는 서술이고, 저장소 문서·소스(고정 커밋)와 공식 OpenCode V2 문서를 읽어 정리했다.</li>
         <li>원본 저장소 HEAD: <code>1cfe254e8d25b15f37048c3730134686abe60335</code> (2026-10-13, "Fix arXiv link").</li>
         <li>논문: Harness²: Recursive Agent Harnessing for an Open World, arXiv:2610.14224 (2026-10-09, CC BY 4.0).</li>
         <li>주요 출처 파일(원본 저장소 기준): README.md, docs/EXPERIMENTS.md, docs/BENCHMARKS.md, docs/SETUP.md, harness2/core/recursion.py, harness2/core/tree.py, harness2/core/selection.py, harness2/core/ledger.py, harness2/substrate/opencode.py.</li>
@@ -400,8 +635,28 @@ harness2-demo --output runs/demo --k 2</code></pre>
     <div class="wrap">
       <p>원본: <a href="https://github.com/google-research/harness2" target="_blank" rel="noopener">github.com/google-research/harness2</a> (Apache-2.0) · 프로젝트 웹: <a href="https://harness2.github.io" target="_blank" rel="noopener">harness2.github.io</a> · 논문: <a href="https://arxiv.org/abs/2610.14224" target="_blank" rel="noopener">arXiv:2610.14224</a> (CC BY 4.0).</p>
       <p>이 페이지는 사용자 요청에 따라 원문 저장소·논문을 읽고 ELI5 원칙(쉬운 말, 일상 비유, 3단계 핵심, 구체 예제, 원문 그림·표 활용)으로 정리한 한국어 설명입니다. 원문 자료를 대신하지 않습니다.</p>
-      <p>작성일: 2026-10-19 · 원본 HEAD <code>1cfe254</code>.</p>
+      <p>작성일: 2026-10-19 · 갱신: 2026-10-20 (KST) · 원본 HEAD <code>1cfe254</code>.</p>
     </div>
   </footer>
+  <script>
+    document.querySelectorAll('#s14 pre, #s15 pre').forEach((block) => {
+      const button = document.createElement('button');
+      button.type = 'button'; button.className = 'copy-btn'; button.textContent = '내용 복사';
+      const status = document.createElement('span');
+      status.className = 'copy-status'; status.setAttribute('role', 'status');
+      block.before(button, status);
+      button.addEventListener('click', async () => {
+        try {
+          if (!navigator.clipboard || !window.isSecureContext) throw new Error('clipboard unavailable');
+          await navigator.clipboard.writeText(block.textContent);
+          status.textContent = '복사했습니다.';
+        } catch (_) {
+          const range = document.createRange(); range.selectNodeContents(block);
+          const selection = window.getSelection(); selection.removeAllRanges(); selection.addRange(range);
+          status.textContent = '본문을 선택했습니다. Ctrl+C 또는 복사 메뉴를 사용하세요.';
+        }
+      });
+    });
+  </script>
 </body>
 </html>
